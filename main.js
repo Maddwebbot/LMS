@@ -133,6 +133,7 @@ ipcMain.handle("edit-transaction", async (event, transaction) => {
   }
 });
 
+// need to be recoded
 ipcMain.handle("return-books", (_, data) => {
   const { transaction_id, books: returnedBooks } = data;
   try {

@@ -243,6 +243,7 @@ function getTransactionBooks(transactionId) {
     .all(transactionId);
 }
 
+// need to be recoded
 function returnBook(bookId, qty) {
   const book = db
     .prepare(

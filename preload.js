@@ -18,7 +18,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   editTransaction: (transaction) =>
     ipcRenderer.invoke("edit-transaction", transaction),
 
+  // need to be recoded
   returnBooks: (data) => ipcRenderer.invoke("return-books", data),
+
   generateTransactionQRCode: (transactionId) =>
     ipcRenderer.invoke("generate-transaction-qr", transactionId),
 

@@ -974,6 +974,7 @@ async function populateReturningList(transactionId) {
 // ====================
 // Confirm Return Button
 // ====================
+// need to be recoded
 confirmReturnBtn.addEventListener("click", async () => {
   if (!returnModal.currentTransaction) return;
 
