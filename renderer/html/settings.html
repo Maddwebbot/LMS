@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LMS</title>
+    <!-- global css -->
+    <link rel="stylesheet" href="../assets/css/root.css" />
+    <!-- specific page css -->
+    <link rel="stylesheet" href="../assets/css/settings.css" />
+  </head>
+  <body>
+    <pmci-loader color="#549a45" size="60px" speed="0.5s"></pmci-loader>
+    <pmci-header></pmci-header>
+    <div class="wrapper">
+      <pmci-nav></pmci-nav>
+      <main>
+        <div class="modal-notification" id="modal-notification"></div>
+        <div id="custom-confirm-modal" class="custom-confirm hidden">
+          <div class="custom-confirm-content">
+            <p id="custom-confirm-message">Are you sure?</p>
+            <div class="custom-confirm-buttons">
+              <button id="confirm-yes" class="confirm-btn yes">Yes</button>
+              <button id="confirm-no" class="confirm-btn no">No</button>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab-button active" data-tab="general">
+            General Settings
+          </button>
+          <button class="tab-button" data-tab="backup">Backup</button>
+          <button class="tab-button" data-tab="about">
+            About / System Info
+          </button>
+        </div>
+
+        <!-- General Settings Tab -->
+        <div id="general" class="tab-content active">
+          <section class="section">
+            <div class="card">
+              <h3>Library Settings</h3>
+              <p>
+                Core behavior and identity - These directly affect how your
+                system operates
+              </p>
+
+              <div class="setting-item">
+                <label class="setting-label">System Logo</label>
+                <input type="file" id="libraryLogo" accept=".png,.jpg,.jpeg" />
+                <img
+                  id="logoPreview"
+                  src=""
+                  style="display: none; max-width: 50px; margin-top: 10px"
+                />
+              </div>
+
+              <div class="setting-item">
+                <label class="setting-label">School Name</label>
+                <input
+                  type="text"
+                  value="Central High School"
+                  class="input-field"
+                  id="schoolName"
+                />
+              </div>
+
+              <div class="setting-item">
+                <label class="setting-label">Library Name</label>
+                <input
+                  type="text"
+                  value="My Library"
+                  class="input-field"
+                  id="libraryName"
+                />
+              </div>
+
+              <div class="setting-item">
+                <label class="setting-label">Max Books Per Borrower</label>
+                <input
+                  type="number"
+                  value="5"
+                  min="1"
+                  class="input-field-number"
+                  id="maxBooks"
+                />
+              </div>
+
+              <div class="setting-item">
+                <label class="setting-label">Borrow Duration (Days)</label>
+                <input
+                  type="number"
+                  value="14"
+                  min="1"
+                  class="input-field-number"
+                  id="borrowDays"
+                />
+              </div>
+
+              <div style="margin-top: 20px">
+                <button class="btn-primary" onclick="saveLibrarySettings()">
+                  Save Settings
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Backup / Import / Export Tab -->
+        <div id="backup" class="tab-content">
+          <section class="section">
+            <div class="card">
+              <h3>Backup Database (Manual)</h3>
+              <p>
+                Create a manual backup of your database to protect your data
+              </p>
+              <button class="btn-primary" onclick="backupDatabase()">
+                Create Backup
+              </button>
+            </div>
+
+            <div class="card">
+              <h3>Drop Database Records</h3>
+              <p>Deletion of books and transaction records</p>
+              <button class="btn-primary" onclick="resetDatabase()">
+                Drop Records
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- About / System Info Tab -->
+        <div id="about" class="tab-content">
+          <section class="section">
+            <div class="card">
+              <h3>System Information</h3>
+              <p>Application version and system details</p>
+              <div class="info-grid">
+                <div class="info-box">
+                  <div class="info-box-label">App Version</div>
+                  <div class="info-box-value">1.0.0</div>
+                </div>
+                <div class="info-box">
+                  <div class="info-box-label">Build Date</div>
+                  <div class="info-box-value">Feb 2, 2026</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Database Information</h3>
+              <p>Database location and details (read-only)</p>
+              <div class="setting-item">
+                <span class="setting-label">Database Location</span>
+                <span class="setting-value" id="dbLocation"
+                  >/data/library-db.json</span
+                >
+              </div>
+              <div class="setting-item">
+                <span class="setting-label">Database Size</span>
+                <span class="setting-value" id="dbSize">2.4 MB</span>
+              </div>
+              <div class="setting-item">
+                <span class="setting-label">Last Backup</span>
+                <span class="setting-value" id="lastBackup"
+                  >Feb 1, 2026 at 3:45 PM</span
+                >
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="../assets/js/app/settings.js"></script>
+    <script src="../assets/js/components/loader.js"></script>
+    <script src="../assets/js/components/header.js"></script>
+    <script src="../assets/js/components/nav.js"></script>
+  </body>
+</html>

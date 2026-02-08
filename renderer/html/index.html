@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LMS</title>
+    <!-- global css -->
+    <link rel="stylesheet" href="../assets/css/root.css" />
+    <!-- specific page css -->
+    <link rel="stylesheet" href="../assets/css/index.css" />
+  </head>
+  <body>
+    <pmci-loader color="#549a45" size="60px" speed="0.5s"></pmci-loader>
+    <pmci-header></pmci-header>
+    <div class="wrapper">
+      <pmci-nav></pmci-nav>
+      <main>
+        <div class="widget-container">
+          <div class="widget">
+            <div class="w-img">
+              <img src="../assets/img/png/all-books-icon.png" alt="icon" />
+            </div>
+            <h5>Total Book Title</h5>
+            <div class="info">
+              <span id="totalBookTitle">0</span>
+              <span id="totalBookTitleText">Inactive</span>
+            </div>
+          </div>
+
+          <div class="widget">
+            <div class="w-img">
+              <img src="../assets/img/png/available-book-icon.png" alt="icon" />
+            </div>
+            <h5>Weekly Total Transaction</h5>
+            <div class="info">
+              <span id="totalBorrowings">0</span>
+              <span id="totalBorrowingsText">Inactive</span>
+            </div>
+          </div>
+
+          <div class="widget">
+            <div class="w-img">
+              <img src="../assets/img/png/borrowed-book-icon.png" alt="icon" />
+            </div>
+            <h5>Weekly Titled Books Borrowed</h5>
+            <div class="info">
+              <span id="activeCheckouts">0</span>
+              <span id="activeCheckoutsText">Inactive</span>
+            </div>
+          </div>
+
+          <div class="widget">
+            <div class="w-img">
+              <img src="../assets/img/png/copies-icon.png" alt="icon" />
+            </div>
+            <h5>Weekly Overdue Transaction</h5>
+            <div class="info">
+              <span id="overdueBooks">0</span>
+              <span id="overdueBooksText">Inactive</span>
+            </div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="dashboard-graph">
+            <div class="trending-container graph">
+              <h5>Most Borrowed Books</h5>
+              <canvas id="mostBorrowedBooks"></canvas>
+              <div
+                id="mostBorrowedLegend"
+                style="margin-top: 10px; font-size: 14px"
+              ></div>
+            </div>
+
+            <div class="recent-table-wrapper">
+              <h5>Recently Added Books</h5>
+              <table id="recentAddedBooksTable" class="recent-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Year</th>
+                    <th>Category</th>
+                  </tr>
+                </thead>
+                <tbody id="recentAddedBooks"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="rules">
+            <h2>📌 System Rules</h2>
+            <ul>
+              <li>
+                👤 Authorized users only
+                <div class="thumb">
+                  <div class="tip"></div>
+                  <div class="body"></div>
+                </div>
+              </li>
+              <li>
+                <p>
+                  📚 Borrow limit maximum of
+                  <span id="maxBooks">?</span>
+                  items at a time
+                </p>
+                <div class="thumb">
+                  <div class="tip"></div>
+                  <div class="body"></div>
+                </div>
+              </li>
+              <li>
+                <p>
+                  ⏰ Return books on time!
+                  <span id="borrowDays"></span>
+                  days is the due date limit
+                </p>
+                <div class="thumb">
+                  <div class="tip"></div>
+                  <div class="body"></div>
+                </div>
+              </li>
+              <li>
+                📝 All borrowing and returning are recorded for tracking and
+                reporting
+                <div class="thumb">
+                  <div class="tip"></div>
+                  <div class="body"></div>
+                </div>
+              </li>
+              <li>
+                ⚠️ Handle books properly; improper handling may result in
+                penalties
+                <div class="thumb">
+                  <div class="tip"></div>
+                  <div class="body"></div>
+                </div>
+              </li>
+              <li>
+                👉 Violations may result in restricted access.
+                <div class="thumb">
+                  <div class="tip"></div>
+                  <div class="body"></div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="../assets/js/vendor/chart.umd.js"></script>
+    <script type="module" src="../assets/js/app/dashboard.js"></script>
+
+    <script src="../assets/js/components/loader.js"></script>
+    <script src="../assets/js/components/header.js"></script>
+    <script src="../assets/js/components/nav.js"></script>
+  </body>
+</html>

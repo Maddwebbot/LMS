@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LMS</title>
+    <link rel="stylesheet" href="../assets/css/root.css" />
+    <link rel="stylesheet" href="../assets/css/book.css" />
+  </head>
+  <body>
+    <pmci-loader color="#549a45" size="60px" speed="0.5s"></pmci-loader>
+    <pmci-header></pmci-header>
+    <div class="wrapper">
+      <pmci-nav></pmci-nav>
+      <main>
+        <div class="modal-notification" id="modal-notification"></div>
+        <div id="custom-confirm-modal" class="custom-confirm hidden">
+          <div class="custom-confirm-content">
+            <p id="custom-confirm-message">Are you sure?</p>
+            <div class="custom-confirm-buttons">
+              <button id="confirm-yes" class="confirm-btn yes">Yes</button>
+              <button id="confirm-no" class="confirm-btn no">No</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-container">
+          <h3>
+            <img src="../assets/img/png/filter-icon.png" alt="Filter" />Search &
+            Filter
+          </h3>
+          <div class="search-field">
+            <button id="scanBtn" class="scan-btn" title="Scan via QR">
+              <div class="icon-container">
+                <img
+                  id="scanIcon"
+                  src="../assets/img/png/scan-icon.png"
+                  alt="Scan QR"
+                />
+              </div>
+            </button>
+
+            <div class="search">
+              <span> <label for="search">Search: </label></span>
+              <input
+                type="text"
+                name="search"
+                id="search"
+                placeholder="Search by book title, or author..."
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="category search">
+              <span>
+                <label for="searchCategory">Category: </label>
+              </span>
+              <select name="searchCategory" id="searchCategory">
+                <option disabled selected hidden value="">
+                  Select Category...
+                </option>
+                <option value="Araling Panlipunan">Araling Panlipunan</option>
+                <option value="English">English</option>
+                <option value="Esp">Esp</option>
+                <option value="Filipino">Filipino</option>
+                <option value="Mandarin">Mandarin</option>
+                <option value="Mapeh">Mapeh</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Science">Science</option>
+                <option value="Technology and Livelihood Education">
+                  Technology and Livelihood Education
+                </option>
+              </select>
+            </div>
+
+            <div class="availability search">
+              <span><label for="searchAvailability">Status:</label></span>
+
+              <div class="radio-group">
+                <label class="radio-option available">
+                  <input
+                    type="radio"
+                    name="searchAvailability"
+                    value="Available"
+                  />
+                  <span class="custom-radio"></span>
+                  Available
+                </label>
+
+                <label class="radio-option unavailable">
+                  <input
+                    type="radio"
+                    name="searchAvailability"
+                    value="Unavailable"
+                  />
+                  <span class="custom-radio"></span>
+                  Unavailable
+                </label>
+              </div>
+            </div>
+
+            <button id="resetFilters">Reset Filters</button>
+
+            <button id="deleteSelected">Delete Selected</button>
+          </div>
+        </div>
+
+        <div class="scanner-preview-container" id="qrContainer">
+          <div id="qrPreview" class="qr-preview"></div>
+          <div class="scan-overlay">
+            <img src="../assets/img/png/scan-gif.gif" alt="Scanning..." />
+            <div id="cameraLabel" class="camera-label"></div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table id="booksTable">
+            <thead>
+              <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    name="selectAll"
+                    id="selectAll"
+                    class="selectAll"
+                  />
+                </th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Year Published</th>
+                <th>Category</th>
+                <th>Total Copies</th>
+                <th>Available Copies</th>
+                <th>Book ID</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="booksTableBody"></tbody>
+          </table>
+        </div>
+        <button id="open-add-book" title="Add Book">
+          <img src="../assets/img/png/add-icon.png" alt="Add" />
+        </button>
+
+        <div id="add-book-modal" class="modal">
+          <div class="modal-content add-book">
+            <span class="close">&times;</span>
+            <h2>Book Information</h2>
+            <form id="add-book-form" autocomplete="off" novalidate>
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="title">Title: </label>
+                  <input
+                    type="text"
+                    name="title"
+                    placeholder="ex. Networking"
+                  />
+                </div>
+                <small class="error-message" data-for="title"></small>
+              </div>
+
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="author">Author: </label>
+                  <input
+                    type="text"
+                    name="author"
+                    placeholder="ex. Engr. Conception Jed"
+                  />
+                </div>
+                <small class="error-message" data-for="author"></small>
+              </div>
+
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="year">Year Published: </label>
+                  <input
+                    type="text"
+                    name="year"
+                    placeholder="ex. 1903"
+                    maxlength="4"
+                  />
+                </div>
+                <small class="error-message" data-for="year"></small>
+              </div>
+
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="category">Category: </label>
+                  <select name="category" id="category">
+                    <option disabled selected hidden>Select Category...</option>
+                    <option value="Araling Panlipunan">
+                      Araling Panlipunan
+                    </option>
+                    <option value="English">English</option>
+                    <option value="Esp">Esp</option>
+                    <option value="Filipino">Filipino</option>
+                    <option value="Mandarin">Mandarin</option>
+                    <option value="Mapeh">Mapeh</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science</option>
+                    <option value="Technology and Livelihood Education">
+                      Technology and Livelihood Education
+                    </option>
+                  </select>
+                </div>
+                <small class="error-message" data-for="category"></small>
+              </div>
+
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="amount">Copies: </label>
+                  <input type="text" name="amount" placeholder="ex. 50" />
+                </div>
+                <small class="error-message" data-for="amount"></small>
+              </div>
+
+              <button type="submit">
+                <div class="img-container">
+                  <img src="../assets/img/png/check-icon.png" alt="Check" />
+                </div>
+                <span>Add Book</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div id="edit-book-modal" class="modal">
+          <div class="modal-content edit-book">
+            <span class="close">&times;</span>
+            <h2>Book Information</h2>
+            <form id="edit-book-form" autocomplete="off" novalidate>
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="title">Title: </label>
+                  <input
+                    type="text"
+                    name="title"
+                    placeholder="ex. Networking"
+                    required
+                  />
+                </div>
+                <small class="error-message" data-for="title"></small>
+              </div>
+
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="author">Author: </label>
+                  <input
+                    type="text"
+                    name="author"
+                    placeholder="ex. Engr. Conception Jed"
+                    required
+                  />
+                </div>
+                <small class="error-message" data-for="author"></small>
+              </div>
+
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="year">Year Published: </label>
+                  <input
+                    type="text"
+                    name="year"
+                    placeholder="ex. 1903"
+                    maxlength="4"
+                    required
+                  />
+                </div>
+                <small class="error-message" data-for="year"></small>
+              </div>
+
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="category">Category: </label>
+                  <select name="category" id="category">
+                    <option disabled selected hidden>Select Category...</option>
+                    <option value="Araling Panlipunan">
+                      Araling Panlipunan
+                    </option>
+                    <option value="English">English</option>
+                    <option value="Esp">Esp</option>
+                    <option value="Filipino">Filipino</option>
+                    <option value="Mandarin">Mandarin</option>
+                    <option value="Mapeh">Mapeh</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science</option>
+                    <option value="Technology and Livelihood Education">
+                      Technology and Livelihood Education
+                    </option>
+                  </select>
+                </div>
+                <small class="error-message" data-for="category"></small>
+              </div>
+
+              <div class="form-group">
+                <div class="form-column">
+                  <label for="total_copies">Total Copies: </label>
+                  <input
+                    type="text"
+                    name="total_copies"
+                    placeholder="ex. Total Copies..."
+                    required
+                  />
+                </div>
+                <p id="min-copies-hint"></p>
+                <small class="error-message" data-for="total_copies"></small>
+              </div>
+
+              <button type="submit">
+                <div class="img-container">
+                  <img src="../assets/img/png/check-icon.png" alt="Check" />
+                </div>
+                <span>Update Book</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="../../node_modules/jsqr/dist/jsQR.js"></script>
+    <script src="../assets/js/app/qrscan.js"></script>
+
+    <script src="../assets/js/app/book.js"></script>
+    <script src="../assets/js/components/loader.js"></script>
+    <script src="../assets/js/components/header.js"></script>
+    <script src="../assets/js/components/nav.js"></script>
+  </body>
+</html>

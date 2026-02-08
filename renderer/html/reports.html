@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LMS</title>
+    <!-- global css -->
+    <link rel="stylesheet" href="../assets/css/root.css" />
+    <!-- specific page css -->
+    <link rel="stylesheet" href="../assets/css/report.css" />
+  </head>
+  <body>
+    <pmci-loader color="#549a45" size="60px" speed="0.5s"></pmci-loader>
+    <pmci-header></pmci-header>
+    <div class="wrapper">
+      <pmci-nav></pmci-nav>
+      <main>
+        <div class="modal-notification" id="modal-notification"></div>
+        <div id="custom-confirm-modal" class="custom-confirm hidden">
+          <div class="custom-confirm-content">
+            <p id="custom-confirm-message">Are you sure?</p>
+            <div class="custom-confirm-buttons">
+              <button id="confirm-yes" class="confirm-btn yes">Yes</button>
+              <button id="confirm-no" class="confirm-btn no">No</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget-container">
+          <div class="widget">
+            <h5>Total Borrowing</h5>
+            <span id="totalBorrowings">0</span>
+            <h6 id="totalBorrowingsText">statistics</h6>
+          </div>
+
+          <div class="widget">
+            <h5>Titled Books Borrowed</h5>
+            <span id="activeCheckouts">0</span>
+            <h6 id="activeCheckoutsText">statistics</h6>
+          </div>
+
+          <div class="widget">
+            <h5>Overdue Books</h5>
+            <span id="overdueBooks">0</span>
+            <h6 id="overdueBooksText">statistics</h6>
+          </div>
+
+          <div class="widget">
+            <h5>Avg. Borrow Duration</h5>
+            <span id="avgBorrowDuration">0</span>
+            <h6 id="avgBorrowDurationText">statistics</h6>
+          </div>
+        </div>
+
+        <div class="graph-container">
+          <div class="outofstack-container graph">
+            <h5>Out of Stacks</h5>
+            <canvas id="outOfStockBar"></canvas>
+          </div>
+
+          <div class="avail-container graph">
+            <h5>Total Copies Available</h5>
+
+            <canvas id="availabilityDoughnut"></canvas>
+          </div>
+
+          <div class="overdue-container graph">
+            <h5>Overdue Transaction</h5>
+            <canvas id="overdueDoughnut"></canvas>
+          </div>
+
+          <div class="bar-container graph">
+            <h5>Total Category Per Book</h5>
+            <canvas id="categoryBar"></canvas>
+          </div>
+        </div>
+
+        <button id="open-report-request" title="Export Report">
+          <img src="../assets/img/png/report-icon.png" alt="Request" />
+        </button>
+
+        <div id="request-modal" class="modal">
+          <div class="modal-content request-content">
+            <span class="close">&times;</span>
+            <h2>Request Report</h2>
+            <form id="export-report-form" autocomplete="off" novalidate>
+              <div class="form-group-wrapper">
+                <div class="form-group">
+                  <div class="form-column request-column">
+                    <div class="radio-header">
+                      <div class="icon-container">
+                        <img
+                          src="../assets/img/png/paper-icon.png"
+                          alt="Report"
+                        />
+                      </div>
+                      <h5>Report Type</h5>
+                    </div>
+                    <div class="radio-select">
+                      <label class="radio-btn">
+                        <input
+                          type="radio"
+                          name="reportType"
+                          value="inventory"
+                        />
+                        Books Inventory
+                      </label>
+
+                      <label class="radio-btn">
+                        <input
+                          type="radio"
+                          name="reportType"
+                          value="transaction"
+                        />
+                        Transaction
+                      </label>
+
+                      <label class="radio-btn">
+                        <input
+                          type="radio"
+                          name="reportType"
+                          value="combined"
+                        />
+                        Combined Report
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="form-column request-column">
+                    <div class="radio-header">
+                      <div class="icon-container">
+                        <img
+                          src="../assets/img/png/date-icon.png"
+                          alt="Report"
+                        />
+                      </div>
+                      <h5>Date Range</h5>
+                    </div>
+                    <div class="radio-select">
+                      <label class="radio-btn">
+                        <input type="radio" name="dateRange" value="today" />
+                        Today
+                      </label>
+
+                      <label class="radio-btn">
+                        <input type="radio" name="dateRange" value="week" />
+                        This Week
+                      </label>
+
+                      <label class="radio-btn">
+                        <input type="radio" name="dateRange" value="month" />
+                        This Month
+                      </label>
+                    </div>
+
+                    <div class="radio-select">
+                      <label class="radio-btn">
+                        <input
+                          type="radio"
+                          name="dateRange"
+                          value="last_month"
+                        />
+                        Last Month
+                      </label>
+
+                      <label class="radio-btn">
+                        <input
+                          type="radio"
+                          name="dateRange"
+                          value="last_quarter"
+                        />
+                        Last Quarter
+                      </label>
+
+                      <label class="radio-btn">
+                        <input type="radio" name="dateRange" value="custom" />
+                        Custom Range
+                      </label>
+                    </div>
+
+                    <div class="date-range" id="customDateRange">
+                      <div class="date-container">
+                        <p>From:</p>
+                        <input type="date" id="fromDate" />
+                      </div>
+                      <div class="date-container">
+                        <p>To:</p>
+                        <input type="date" id="toDate" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="form-column request-column">
+                    <div class="radio-header">
+                      <div class="icon-container">
+                        <img
+                          src="../assets/img/png/stats-icon.png"
+                          alt="Report"
+                        />
+                      </div>
+                      <h5>Select Fields to Export</h5>
+                    </div>
+                    <div id="fieldChecklist" class="field-checklist">
+                      <p class="hint">Select a report type first</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="form-column request-column">
+                    <div class="radio-header">
+                      <div class="icon-container">
+                        <img
+                          src="../assets/img/png/save-icon.png"
+                          alt="Report"
+                        />
+                      </div>
+                      <h5>Export Format</h5>
+                    </div>
+                    <div class="radio-select">
+                      <label class="radio-btn">
+                        <div class="icon-cont">
+                          <img src="../assets/img/png/csv-icon.png" alt="csv" />
+                        </div>
+                        <input type="radio" name="exportType" value="csv" />
+                        CSV
+                      </label>
+
+                      <label class="radio-btn">
+                        <div class="icon-cont">
+                          <img
+                            src="../assets/img/png/excel-icon.png"
+                            alt="excel"
+                          />
+                        </div>
+                        <input type="radio" name="exportType" value="excel" />
+                        Excel (XLXS)
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit">
+                <div class="img-container">
+                  <img src="../assets/img/png/check-icon.png" alt="Check" />
+                </div>
+                <span>Request Report</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script src="../assets/js/app/report.js"></script>
+    <script src="../assets/js/vendor/chart.umd.js"></script>
+    <script type="module" src="../assets/js/vendor/report_chart.js"></script>
+
+    <script src="../assets/js/components/loader.js"></script>
+    <script src="../assets/js/components/header.js"></script>
+    <script src="../assets/js/components/nav.js"></script>
+  </body>
+</html>

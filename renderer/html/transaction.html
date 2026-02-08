@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>LMS</title>
+    <!-- global css -->
+    <link rel="stylesheet" href="../assets/css/root.css" />
+    <!-- specific page css -->
+    <link rel="stylesheet" href="../assets/css/transaction.css" />
+  </head>
+  <body>
+    <pmci-loader color="#549a45" size="60px" speed="0.5s"></pmci-loader>
+    <pmci-header></pmci-header>
+    <div class="wrapper">
+      <pmci-nav></pmci-nav>
+
+      <!-- yet to update -->
+      <main>
+        <div class="modal-notification" id="modal-notification"></div>
+        <div id="custom-confirm-modal" class="custom-confirm hidden">
+          <div class="custom-confirm-content">
+            <p id="custom-confirm-message">Are you sure?</p>
+            <div class="custom-confirm-buttons">
+              <button id="confirm-yes" class="confirm-btn yes">Yes</button>
+              <button id="confirm-no" class="confirm-btn no">No</button>
+            </div>
+          </div>
+        </div>
+
+        <section class="collapsible-section" id="request-section">
+          <div class="section-header">
+            <h3>Book Selection</h3>
+            <span class="toggle-icon">&#9650;</span>
+          </div>
+          <div class="section-body open">
+            <div class="filter-container">
+              <h3>
+                <img
+                  src="../assets/img/png/filter-icon.png"
+                  alt="Filter"
+                />Search & Filter
+              </h3>
+              <div class="search-field">
+                <button id="scanBtnBooks" class="scan-btn" title="Scan via QR">
+                  <div class="icon-container">
+                    <img
+                      id="scanIcon"
+                      src="../assets/img/png/scan-icon.png"
+                      alt="Scan QR"
+                    />
+                  </div>
+                </button>
+
+                <div class="search">
+                  <span> <label for="search">Search: </label></span>
+                  <input
+                    type="text"
+                    name="search"
+                    id="search"
+                    placeholder="Search by book title, or author..."
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="category search">
+                  <span>
+                    <label for="searchCategory">Category: </label>
+                  </span>
+                  <select name="searchCategory" id="searchCategory">
+                    <option disabled selected hidden value="">
+                      Select Category...
+                    </option>
+                    <option value="Araling Panlipunan">
+                      Araling Panlipunan
+                    </option>
+                    <option value="English">English</option>
+                    <option value="Esp">Esp</option>
+                    <option value="Filipino">Filipino</option>
+                    <option value="Mandarin">Mandarin</option>
+                    <option value="Mapeh">Mapeh</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Science">Science</option>
+                    <option value="Technology and Livelihood Education">
+                      Technology and Livelihood Education
+                    </option>
+                  </select>
+                </div>
+                <div class="availability search">
+                  <span><label for="searchAvailability">Status:</label></span>
+
+                  <div class="radio-group">
+                    <label class="radio-option available">
+                      <input
+                        type="radio"
+                        name="searchAvailability"
+                        value="Available"
+                      />
+                      <span class="custom-radio"></span>
+                      Available
+                    </label>
+
+                    <label class="radio-option unavailable">
+                      <input
+                        type="radio"
+                        name="searchAvailability"
+                        value="Unavailable"
+                      />
+                      <span class="custom-radio"></span>
+                      Unavailable
+                    </label>
+                  </div>
+                </div>
+
+                <button id="resetFilters">Reset Filters</button>
+              </div>
+            </div>
+
+            <div class="scanner-preview-container" id="qrContainer">
+              <div id="qrPreview" class="qr-preview"></div>
+              <div class="scan-overlay">
+                <img src="../assets/img/png/scan-gif.gif" alt="Scanning..." />
+                <div id="cameraLabel" class="camera-label"></div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table id="booksTable">
+                <thead>
+                  <tr>
+                    <th>
+                      <input
+                        type="checkbox"
+                        name="selectAll"
+                        id="selectAll"
+                        class="selectAll"
+                      />
+                    </th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Available Copies</th>
+                    <th>Book ID</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="booksTableBody"></tbody>
+              </table>
+            </div>
+
+            <button id="open-transaction-list" title="Request a Book">
+              <img src="../assets/img/png/add-transation-icon.png" alt="Add" />
+            </button>
+
+            <div id="add-transaction-modal" class="modal">
+              <div class="modal-content add-book">
+                <span class="close">&times;</span>
+                <h2>Book Request Form</h2>
+                <form id="add-transaction-form" autocomplete="off" novalidate>
+                  <div class="wrapper">
+                    <div class="form-container">
+                      <h3>Borrower Info</h3>
+                      <div class="form-group">
+                        <div class="form-column">
+                          <label for="borrower_name">Name: </label>
+                          <input
+                            type="text"
+                            name="borrower_name"
+                            placeholder="ex. Ma'am Jacil Maris A. Luma-As"
+                          />
+                        </div>
+                        <small
+                          class="error-message"
+                          data-for="borrower_name"
+                        ></small>
+                      </div>
+                      <div class="form-group">
+                        <div class="form-column">
+                          <label for="section">Section: </label>
+                          <input
+                            type="text"
+                            name="section"
+                            placeholder="ex. Lapu-Lapu"
+                          />
+                        </div>
+                        <small class="error-message" data-for="section"></small>
+                      </div>
+                      <div class="form-group">
+                        <div class="form-column">
+                          <label for="grade">Grade: </label>
+                          <input
+                            type="text"
+                            name="grade"
+                            placeholder="ex. 12"
+                          />
+                        </div>
+                        <small class="error-message" data-for="grade"></small>
+                      </div>
+                      <div class="form-group">
+                        <div class="form-column">
+                          <label for="borrower_st_id">Student No.: </label>
+                          <input
+                            type="text"
+                            name="borrower_st_id"
+                            placeholder="ex. 2022xxxxx"
+                          />
+                        </div>
+                        <small
+                          class="error-message"
+                          data-for="borrower_st_id"
+                        ></small>
+                      </div>
+                    </div>
+                    <div class="table-container">
+                      <table id="listTable">
+                        <thead>
+                          <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Available Copies</th>
+                            <th>Book ID</th>
+                            <th>Borrowing</th>
+                          </tr>
+                        </thead>
+                        <tbody id="listTableBody">
+                          <tr>
+                            <td>Sample</td>
+                            <td>Cain</td>
+                            <td>Araling Panlipunan</td>
+                            <td>1</td>
+                            <td>B24617808123</td>
+                            <td>
+                              <input
+                                type="text"
+                                placeholder="Amount of copies to request?"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <button type="submit">
+                    <div class="img-container">
+                      <img src="../assets/img/png/check-icon.png" alt="Check" />
+                    </div>
+                    <span>Confirm Request</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="collapsible-section" id="transaction-section">
+          <div class="section-header">
+            <h3>Transaction List</h3>
+            <span class="toggle-icon">&#9650;</span>
+          </div>
+          <div class="section-body">
+            <div class="filter-container">
+              <h3>
+                <img
+                  src="../assets/img/png/search-icon.png"
+                  alt="Filter"
+                />Search Tool
+              </h3>
+              <div class="search-field">
+                <button
+                  id="scanBtnTransactions"
+                  class="scan-btn"
+                  title="Scan via QR"
+                >
+                  <div class="icon-container">
+                    <img
+                      id="scanIcon"
+                      src="../assets/img/png/scan-icon.png"
+                      alt="Scan QR"
+                    />
+                  </div>
+                </button>
+
+                <div class="search">
+                  <span> <label for="transactionsearch">Search: </label></span>
+                  <input
+                    type="text"
+                    name="transactionsearch"
+                    id="transactionsearch"
+                    placeholder="Search by book title, or author..."
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="availability search">
+                  <span><label for="searchStatusT">Status:</label></span>
+
+                  <div class="radio-group">
+                    <label class="radio-option all">
+                      <input
+                        type="radio"
+                        name="searchStatusT"
+                        value="All"
+                        checked
+                      />
+                      <span class="custom-radio"></span>
+                      All
+                    </label>
+                    <label class="radio-option active">
+                      <input type="radio" name="searchStatusT" value="Active" />
+                      <span class="custom-radio"></span>
+                      Active
+                    </label>
+
+                    <label class="radio-option returned">
+                      <input
+                        type="radio"
+                        name="searchStatusT"
+                        value="Returned"
+                      />
+                      <span class="custom-radio"></span>
+                      Returned
+                    </label>
+
+                    <label class="radio-option overdue">
+                      <input
+                        type="radio"
+                        name="searchStatusT"
+                        value="Overdue"
+                      />
+                      <span class="custom-radio"></span>
+                      Overdue
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table id="transactionTable">
+                <thead>
+                  <tr>
+                    <th>Borrower</th>
+                    <th>Grade</th>
+                    <th>Section</th>
+                    <th>Borrow Date<br /><span>(YYYY-MM-DD)</span></th>
+                    <th>Due Date<br /><span>(YYYY-MM-DD)</span></th>
+                    <th>Transaction ID</th>
+                    <th>Status</th>
+                    <th>Returned<br /><span>(YYYY-MM-DD)</span></th>
+                    <th class="action-th">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionsTableBody"></tbody>
+              </table>
+            </div>
+
+            <div id="edit-transaction-modal" class="modal">
+              <div class="modal-content edit-transaction">
+                <span class="close">&times;</span>
+                <h2>Edit Transaction</h2>
+                <form id="edit-transaction-form" autocomplete="off" novalidate>
+                  <div class="form-group-transaction">
+                    <div class="form-column">
+                      <label for="borrower_name">Name: </label>
+                      <input
+                        type="text"
+                        name="borrower_name"
+                        placeholder="ex. Ma'am Jacil"
+                        required
+                      />
+                    </div>
+                    <small
+                      class="error-message"
+                      data-for="borrower_name"
+                    ></small>
+                  </div>
+
+                  <div class="form-group-transaction">
+                    <div class="form-column">
+                      <label for="borrower_st_id">Student No.: </label>
+                      <input
+                        type="text"
+                        name="borrower_st_id"
+                        placeholder="ex. 2022xxxxx"
+                        required
+                      />
+                    </div>
+                    <small
+                      class="error-message"
+                      data-for="borrower_st_id"
+                    ></small>
+                  </div>
+
+                  <div class="form-group-transaction">
+                    <div class="form-column">
+                      <label for="borrower_grade">Grade: </label>
+                      <input
+                        type="text"
+                        name="borrower_grade"
+                        placeholder="ex. 12"
+                        required
+                      />
+                    </div>
+                    <small
+                      class="error-message"
+                      data-for="borrower_grade"
+                    ></small>
+                  </div>
+
+                  <div class="form-group-transaction">
+                    <div class="form-column">
+                      <label for="borrower_section">Section: </label>
+                      <input
+                        type="text"
+                        name="borrower_section"
+                        placeholder="ex. Lapu-Lapu"
+                        required
+                      />
+                    </div>
+                    <small
+                      class="error-message"
+                      data-for="borrower_section"
+                    ></small>
+                  </div>
+
+                  <div class="form-group-transaction">
+                    <div class="form-column">
+                      <label for="due_date">Due date: </label>
+
+                      <input
+                        type="date"
+                        name="due_date"
+                        id="due_date_input"
+                        placeholder="ex. YYYY-MM-DD"
+                        required
+                      />
+                    </div>
+                    <small class="error-message" data-for="due_date"></small>
+                  </div>
+
+                  <button type="submit">
+                    <div class="img-container">
+                      <img src="../assets/img/png/check-icon.png" alt="Check" />
+                    </div>
+                    <span>Update Transaction</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div id="info-modal" class="modal">
+              <div class="modal-content info-transaction">
+                <span class="close">&times;</span>
+                <h2 id="transaction_id"></h2>
+                <div id="infoContents">
+                  <div class="info-container">
+                    <div class="info-group">
+                      <h3 id="borrower"></h3>
+                      <h5>Name</h5>
+                    </div>
+                    <div class="info-group">
+                      <h3 id="borrower_grade_section"></h3>
+                      <h5>Grade and Section</h5>
+                    </div>
+                    <div class="info-group">
+                      <h3 id="borrowed_at"></h3>
+                      <h5>Date Borrowed</h5>
+                    </div>
+                    <div class="info-group">
+                      <h3 id="due_date"></h3>
+                      <h5>Date of Return</h5>
+                    </div>
+                  </div>
+                </div>
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Copies</th>
+                        <th>Book ID</th>
+                      </tr>
+                    </thead>
+                    <tbody id="borrowerListBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="return-modal" class="modal">
+              <div class="modal-content return-transaction">
+                <span class="close">&times;</span>
+                <h2 id="return_transaction_id"></h2>
+                <div id="infoContents">
+                  <div class="info-container">
+                    <div class="info-group">
+                      <h3 id="return_borrower"></h3>
+                      <h5>Name</h5>
+                    </div>
+                    <div class="info-group">
+                      <h3 id="return_borrower_grade_section"></h3>
+                      <h5>Grade and Section</h5>
+                    </div>
+                    <div class="info-group">
+                      <h3 id="return_borrowed_at"></h3>
+                      <h5>Date Borrowed</h5>
+                    </div>
+                    <div class="info-group">
+                      <h3 id="return_due_date"></h3>
+                      <h5>Date of Return</h5>
+                    </div>
+                  </div>
+                </div>
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Copies Left</th>
+                        <th>Book ID</th>
+                        <th>Returning</th>
+                      </tr>
+                    </thead>
+                    <tbody id="returnModalBody"></tbody>
+                  </table>
+                </div>
+                <button id="confirm-return">
+                  <div class="img-container">
+                    <img src="../assets/img/png/check-icon.png" alt="Check" />
+                  </div>
+                  <span>Return Selected</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="../../node_modules/jsqr/dist/jsQR.js"></script>
+    <script src="../assets/js/app/qrscan.js"></script>
+
+    <script src="../assets/js/app/transaction.js"></script>
+    <script src="../assets/js/components/loader.js"></script>
+    <script src="../assets/js/components/header.js"></script>
+    <script src="../assets/js/components/nav.js"></script>
+  </body>
+</html>
