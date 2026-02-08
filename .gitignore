@@ -1,0 +1,11 @@
+# Node / Electron
+node_modules/
+dist/
+out/
+
+# Environment files
+.env
+
+# Logs
+npm-debug.log*
+yarn-error.log*

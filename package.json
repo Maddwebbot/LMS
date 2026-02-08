@@ -1,0 +1,54 @@
+{
+  "name": "lms",
+  "version": "1.0.0",
+  "description": "Desktop Application to be donated to the Phillipine Malabon Cultural Institute",
+  "main": "main.js",
+  "scripts": {
+    "dev": "electronmon .",
+    "start": "electron .",
+    "rebuild": "electron-rebuild",
+    "build": "electron-builder",
+    "postinstall": "electron-builder install-app-deps",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Madwebbot",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "better-sqlite3": "^12.6.2",
+    "chart.js": "^4.5.1",
+    "html5-qrcode": "^2.3.8",
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4",
+    "sqlite": "^5.1.1",
+    "xlsx": "^0.18.5"
+  },
+  "build": {
+    "appId": "com.pmci.lms",
+    "productName": "LMS",
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "database/**"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "renderer/assets/icon.ico"
+    },
+    "forceCodeSigning": false
+  },
+  "devDependencies": {
+    "electron": "^40.0.0",
+    "electron-builder": "^26.4.0",
+    "electron-rebuild": "^3.2.9",
+    "electronmon": "^2.0.4"
+  }
+}
