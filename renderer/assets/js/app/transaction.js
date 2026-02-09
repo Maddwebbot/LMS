@@ -919,6 +919,7 @@ function openReturnModal(transaction) {
 // -------------------------
 // Populate Returnable Books
 // -------------------------
+// need to be recoded this populate and the confirm button
 async function populateReturningList(transactionId) {
   const tbody = document.getElementById("returnModalBody");
   if (!tbody) return;
@@ -974,7 +975,6 @@ async function populateReturningList(transactionId) {
 // ====================
 // Confirm Return Button
 // ====================
-// need to be recoded
 confirmReturnBtn.addEventListener("click", async () => {
   if (!returnModal.currentTransaction) return;
 
