@@ -919,15 +919,12 @@ function openReturnModal(transaction) {
 // -------------------------
 // Populate Returnable Books
 // -------------------------
-// need to be recoded this populate and the confirm button
 async function populateReturningList(transactionId) {
   const tbody = document.getElementById("returnModalBody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
   const books = await window.electronAPI.getTransactionBooks(transactionId);
-
-  // ✅ STORE THEM HERE
   returnModal.transactionBooks = books;
 
   if (!Array.isArray(books) || books.length === 0) {
@@ -951,10 +948,10 @@ async function populateReturningList(transactionId) {
           class="returningQty"
           placeholder="Qty"
           data-index="${index}"
+          ${remaining <= 0 ? "disabled" : ""}
         />
       </td>
     `;
-
     tbody.appendChild(tr);
 
     const input = tr.querySelector(".returningQty");
@@ -965,16 +962,12 @@ async function populateReturningList(transactionId) {
       if (!val || val < 1) input.value = "";
       if (val > remaining) input.value = remaining;
     });
-
-    if (remaining <= 0) {
-      input.disabled = true;
-    }
   });
 }
 
-// ====================
+// -------------------------
 // Confirm Return Button
-// ====================
+// -------------------------
 confirmReturnBtn.addEventListener("click", async () => {
   if (!returnModal.currentTransaction) return;
 
@@ -984,32 +977,39 @@ confirmReturnBtn.addEventListener("click", async () => {
   rows.forEach((row) => {
     const input = row.querySelector(".returningQty");
     const qty = parseInt(input.value, 10) || 0;
-    if (qty > 0) {
-      const index = Number(input.dataset.index);
-      const book = returnModal.transactionBooks?.[index];
 
-      if (!book) {
-        console.warn("Invalid book index:", index);
-        return;
-      }
+    const index = Number(input.dataset.index);
+    const book = returnModal.transactionBooks?.[index];
+    if (!book) return;
 
-      returnData.push({
-        book_id: book.book_id,
-        returning: qty,
-      });
-    }
+    // Send ALL books, even qty 0
+    returnData.push({
+      book_id: book.book_id,
+      returning: qty,
+    });
   });
 
-  if (returnData.length === 0) {
+  // Check if user selected at least 1 book to return
+  const anyQty = returnData.some((b) => b.returning > 0);
+  if (!anyQty) {
     showNotification("No books selected to return!", "error", 2500);
     return;
   }
 
   try {
+    const returnDataToSend = returnData.filter((b) => b.returning > 0);
+
+    if (returnDataToSend.length === 0) {
+      showNotification("No books selected to return!", "error", 2500);
+      return;
+    }
+
     await window.electronAPI.returnBooks({
       transaction_id: returnModal.currentTransaction.transaction_id,
-      books: returnData,
+      books: returnDataToSend,
     });
+    console.log("Book in Transaction ", returnData);
+    console.log("Books Returned ", returnDataToSend);
 
     loadTransaction();
     loadBooks();
