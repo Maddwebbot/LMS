@@ -116,9 +116,9 @@ ipcMain.handle("add-transaction", (event, payload) => {
     throw err;
   }
 });
-ipcMain.handle("edit-transaction", async (event, transaction) => {
+ipcMain.handle("edit-transaction", (event, transaction) => {
   try {
-    await api.editTransaction(
+    api.editTransaction(
       transaction.id,
       transaction.borrower_name,
       transaction.borrower_st_id,
