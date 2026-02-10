@@ -125,7 +125,7 @@ async function saveLibrarySettings() {
   }, 1210);
 }
 
-// ------------------------- Backup / Restore -----------------------------------
+// ------------------------- Backup / Reset || Drop / Import -----------------------------------
 async function backupDatabase() {
   try {
     const path = await window.electronAPI.backupDatabase();
@@ -152,6 +152,20 @@ async function resetDatabase() {
   } catch (err) {
     console.error("Error occured upon deleting: ", err);
   }
+}
+
+async function importBooks() {
+  const result = await window.electronAPI.importBooksFromExcel();
+
+  if (!result.success) {
+    return showNotification(result.message, "error", 3000);
+  }
+
+  showNotification(
+    `Imported: ${result.inserted} | Duplicates skipped: ${result.duplicates}`,
+    "success",
+    4000,
+  );
 }
 
 // -------------------------

@@ -7,6 +7,7 @@ const {
   generateTransactionQRCode,
 } = require("./utils/helper/qrcode.js");
 const fs = require("fs");
+const { importBooksFromExcel } = require("./utils/helper/importhelper.js");
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -132,8 +133,6 @@ ipcMain.handle("edit-transaction", (event, transaction) => {
     return { success: false, error: err.message };
   }
 });
-
-// need to be recoded
 ipcMain.handle("return-books", (_, data) => {
   const { transaction_id, books: returnedBooks } = data;
   try {
@@ -291,4 +290,28 @@ ipcMain.handle("backup-database", () => api.backupDatabase());
 
 ipcMain.handle("reset-database", async () => {
   return api.resetDatabase();
+});
+
+ipcMain.handle("import-books-from-excel", async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ["openFile"],
+    filters: [{ name: "Excel Files", extensions: ["xlsx", "xls"] }],
+  });
+
+  if (canceled) {
+    return { success: false, message: "Import cancelled" };
+  }
+
+  try {
+    const result = importBooksFromExcel(filePaths[0]);
+
+    return {
+      success: true,
+      inserted: result.inserted,
+      duplicates: result.duplicates,
+    };
+  } catch (err) {
+    console.error(err);
+    return { success: false, message: "Import failed" };
+  }
 });

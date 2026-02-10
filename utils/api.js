@@ -21,6 +21,56 @@ function addBook(title, author, year, category, total_copies) {
   ).run(title, author, year, book_id, category, total_copies, total_copies);
 }
 
+function importBooksBulkWithDuplicates(books) {
+  const insert = db.prepare(`
+    INSERT INTO books (
+      title, author, year, book_id, category,
+      total_copies, available_amount
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const checkDuplicate = db.prepare(`
+    SELECT id FROM books
+    WHERE title = ?
+      AND author = ?
+      AND year = ?
+      AND is_deleted = 0
+  `);
+
+  let inserted = 0;
+  let duplicates = 0;
+
+  const transaction = db.transaction((rows) => {
+    for (const row of rows) {
+      const exists = checkDuplicate.get(row.title, row.author, row.year);
+
+      if (exists) {
+        duplicates++;
+        continue;
+      }
+
+      const book_id = generateBookId();
+
+      insert.run(
+        row.title,
+        row.author,
+        row.year,
+        book_id,
+        row.category,
+        row.total_copies,
+        row.total_copies,
+      );
+
+      inserted++;
+    }
+  });
+
+  transaction(books);
+
+  return { inserted, duplicates };
+}
+
 function deleteBook(id) {
   try {
     // 1️⃣ Check for active (unreturned) transactions
@@ -634,6 +684,7 @@ function resetDatabase() {
 
 module.exports = {
   addBook,
+  importBooksBulkWithDuplicates,
   editBook,
   deleteBook,
   getBooks,

@@ -28,7 +28,7 @@
           <button class="tab-button active" data-tab="general">
             General Settings
           </button>
-          <button class="tab-button" data-tab="backup">Backup</button>
+          <button class="tab-button" data-tab="backup">Data Management</button>
           <button class="tab-button" data-tab="about">
             About / System Info
           </button>
@@ -111,7 +111,10 @@
             <div class="card">
               <h3>Backup Database (Manual)</h3>
               <p>
-                Create a manual backup of your database to protect your data
+                Create a manual backup of your database to protect your data.
+                This backup is saved locally on your device only and is not
+                stored in the cloud. Regular backups are recommended, especially
+                before major changes.
               </p>
               <button class="btn-primary" onclick="backupDatabase()">
                 Create Backup
@@ -119,9 +122,17 @@
             </div>
 
             <div class="card">
+              <h3>Import Database Book Records</h3>
+              <p>Import book records from a EXCEL file</p>
+              <button class="btn-primary" onclick="importBooks()">
+                Import Book Records
+              </button>
+            </div>
+
+            <div class="card">
               <h3>Drop Database Records</h3>
               <p>Deletion of books and transaction records</p>
-              <button class="btn-primary" onclick="resetDatabase()">
+              <button class="btn-primary delete" onclick="resetDatabase()">
                 Drop Records
               </button>
             </div>
