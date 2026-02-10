@@ -15,7 +15,7 @@ THING I COULD NOT IMPLEMENT RUN OUT OF TIME LOL
 - reports can be expanded since is_deleted in the database of books can be used in exporting archived or unarchived books or both
   like the user can select if they want to export archived or unarchived data or even both
 
-- book management lagyan archived and unarchives section ibabase (is_deleted) sa database table books
+- book management add archived and unarchives section ibabase (is_deleted) sa database table books
 
 - import database via excel like sample.db like importing data from excel to database
 
