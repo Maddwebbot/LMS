@@ -221,6 +221,7 @@ main {
     }
     tbody {
       tr {
+        height: 80px;
         transition: 0.3s ease-in-out;
 
         &:nth-child(odd) {
