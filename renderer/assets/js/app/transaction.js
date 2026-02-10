@@ -500,15 +500,7 @@ async function loadTransaction() {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
-        }).format(new Date(transaction.returned_at))
-      : "-";
-
-    const formattedDue = transaction.due_date
-      ? new Intl.DateTimeFormat("en-CA", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }).format(new Date(transaction.due_date))
+        }).format(returnedAt)
       : "-";
 
     const tr = document.createElement("tr");
