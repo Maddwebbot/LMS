@@ -496,12 +496,12 @@ async function loadTransaction() {
       day: "2-digit",
     }).format(borrowedAt);
 
-    const formattedReturned = returnedAt
+    const formattedReturned = transaction.returned_at
       ? new Intl.DateTimeFormat("en-CA", {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
-        }).format(returnedAt)
+        }).format(new Date(transaction.returned_at))
       : "-";
 
     const tr = document.createElement("tr");
@@ -545,32 +545,35 @@ async function loadTransaction() {
     const statusTd = tr.querySelector("td:nth-child(7)");
     const editBtn = tr.querySelector(".edit-btn");
     const returnBtn = tr.querySelector(".return-btn");
+    const qrBtn = tr.querySelector(".qr-btn");
 
     const now = new Date();
     const dueDate = new Date(transaction.due_date);
 
-    if (transaction.returned_at) {
+    if (transaction.fully_returned) {
       statusTd.innerHTML = '<span class="status returned">Returned</span>';
 
       // Disable buttons
       editBtn.disabled = true;
       returnBtn.disabled = true;
+      qrBtn.disabled = true;
 
-      // Optional: add a CSS class to visually show disabled
       editBtn.classList.add("disabled");
       returnBtn.classList.add("disabled");
+      qrBtn.classList.add("disabled");
     } else if (now > dueDate) {
       const daysOverdue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
       statusTd.innerHTML = `<span class="status overdue">Overdue (${daysOverdue} d)</span>`;
 
-      // Keep buttons active
       editBtn.disabled = false;
       returnBtn.disabled = false;
+      qrBtn.disabled = false;
     } else {
       statusTd.innerHTML = '<span class="status active">Active</span>';
 
       editBtn.disabled = false;
       returnBtn.disabled = false;
+      qrBtn.disabled = false;
     }
 
     // Button listeners
@@ -1008,8 +1011,6 @@ confirmReturnBtn.addEventListener("click", async () => {
       transaction_id: returnModal.currentTransaction.transaction_id,
       books: returnDataToSend,
     });
-    console.log("Book in Transaction ", returnData);
-    console.log("Books Returned ", returnDataToSend);
 
     loadTransaction();
     loadBooks();
