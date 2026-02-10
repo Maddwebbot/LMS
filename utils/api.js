@@ -185,27 +185,34 @@ function addTransaction({ borrower, selectedBooks, dueDate }) {
 }
 
 function editTransaction(
-  id,
+  transaction_id,
   borrower_name,
   borrower_st_id,
   borrower_grade,
   borrower_section,
   due_date,
 ) {
-  db.prepare(
-    `
+  // Update ALL rows with this transaction_id (multiple books per transaction)
+  const result = db
+    .prepare(
+      `
     UPDATE transactions
     SET borrower_name = ?, borrower_st_id = ?, borrower_grade = ?, borrower_section = ?, due_date = ?
-    WHERE id = ?
+    WHERE transaction_id = ?
   `,
-  ).run(
-    borrower_name,
-    borrower_st_id,
-    borrower_grade,
-    borrower_section,
-    due_date,
-    id,
-  );
+    )
+    .run(
+      borrower_name,
+      borrower_st_id,
+      borrower_grade,
+      borrower_section,
+      due_date,
+      transaction_id,
+    );
+
+  if (result.changes === 0) {
+    throw new Error("Transaction not found");
+  }
 }
 
 function getTransactions() {

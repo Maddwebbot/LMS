@@ -500,7 +500,15 @@ async function loadTransaction() {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
-        }).format(returnedAt)
+        }).format(new Date(transaction.returned_at))
+      : "-";
+
+    const formattedDue = transaction.due_date
+      ? new Intl.DateTimeFormat("en-CA", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date(transaction.due_date))
       : "-";
 
     const tr = document.createElement("tr");
@@ -671,32 +679,8 @@ function openTransactionModal(transaction) {
     transaction.borrower_section || "";
   editTransactionForm.elements["due_date"].value = transaction.due_date || "";
 
-  // Store book ID in form dataset
-  editTransactionForm.dataset.transactionId = transaction.id;
-}
-
-// Edit Book frontend function
-async function editTransaction(
-  id,
-  borrower_name,
-  borrower_st_id,
-  borrower_grade,
-  borrower_section,
-  due_date,
-) {
-  try {
-    await window.electronAPI.editTransaction({
-      id,
-      borrower_name,
-      borrower_st_id,
-      borrower_grade,
-      borrower_section,
-      due_date,
-    });
-    await loadTransaction();
-  } catch (err) {
-    console.error("Failed to edit transaction:", err);
-  }
+  // Store transaction_id in form dataset
+  editTransactionForm.dataset.transactionId = transaction.transaction_id;
 }
 
 // Edit Transaction Form backend submission
@@ -746,7 +730,7 @@ editTransactionForm.addEventListener("submit", async (e) => {
   }
 
   try {
-    await window.electronAPI.editTransaction({
+    const response = await window.electronAPI.editTransaction({
       id: transactionId,
       borrower_name: borrower.name,
       borrower_st_id: borrower.id,
@@ -754,6 +738,16 @@ editTransactionForm.addEventListener("submit", async (e) => {
       borrower_section: borrower.section,
       due_date,
     });
+
+    // Check if API returned an error
+    if (response?.success === false) {
+      showNotification(
+        response?.error || "Failed to edit transaction!",
+        "error",
+        3000,
+      );
+      return;
+    }
 
     showNotification("Transaction edited successfully!", "success", 2500);
 
