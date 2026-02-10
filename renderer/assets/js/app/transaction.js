@@ -1067,6 +1067,8 @@ async function handleQRScan(targetInput, btn, icon) {
 
     resetScanUI();
     showNotification("QR scanned!", "success", 3000);
+    const successSound = new Audio("../assets/audio/scan.mp3");
+    successSound.play();
   } catch (err) {
     resetScanUI();
     showNotification(err.message, "error", 3000);

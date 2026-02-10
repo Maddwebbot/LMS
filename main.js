@@ -15,7 +15,7 @@ function createWindow() {
     height: 800,
     frame: true,
     show: false,
-    icon: path.join(__dirname, "renderer/assets/default.ico"),
+    icon: path.join(__dirname, "renderer/assets/icon.ico"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,

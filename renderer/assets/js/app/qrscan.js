@@ -79,7 +79,7 @@ async function startScan(previewContainerId) {
           );
 
           if (code?.data) {
-            stopScan(); // ✅ stop after success
+            stopScan();
             resolve(code.data);
             return;
           }

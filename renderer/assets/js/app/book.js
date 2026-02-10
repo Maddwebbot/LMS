@@ -503,6 +503,9 @@ scanBtn.addEventListener("click", async () => {
     resetScanUI();
     showNotification("QR scanned!", "success", 3000);
 
+    const successSound = new Audio("../assets/audio/scan.mp3");
+    successSound.play();
+
     // Inject scanned QR into search
     searchInput.value = qrData;
 
