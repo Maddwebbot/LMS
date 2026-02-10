@@ -425,6 +425,7 @@ addTransactionForm.onsubmit = async (e) => {
       "success",
       3000,
     );
+    selectAll.checked = false;
     addTransactionForm.reset();
     loadTransaction();
     loadBooks();
@@ -461,18 +462,19 @@ async function loadTransaction() {
       transaction.borrowed_at.toLowerCase().includes(searchTerm) ||
       transaction.due_date.toLowerCase().includes(searchTerm);
 
+    // Determine status text like in the table
     const now = new Date();
     const dueDate = new Date(transaction.due_date);
+    let statusText = "Active";
+
+    if (transaction.fully_returned) {
+      statusText = "Returned";
+    } else if (now > dueDate) {
+      statusText = "Overdue";
+    }
 
     const matchesStatus =
-      selectedStatusT === "All" ||
-      (selectedStatusT === "Returned" && transaction.returned_at) ||
-      (selectedStatusT === "Overdue" &&
-        !transaction.returned_at &&
-        now > dueDate) ||
-      (selectedStatusT === "Active" &&
-        !transaction.returned_at &&
-        now <= dueDate);
+      selectedStatusT === "All" || selectedStatusT === statusText;
 
     return matchesSearch && matchesStatus;
   });
@@ -486,9 +488,6 @@ async function loadTransaction() {
 
   filteredTransactions.forEach((transaction) => {
     const borrowedAt = new Date(transaction.borrowed_at);
-    const returnedAt = transaction.returned_at
-      ? new Date(transaction.returned_at)
-      : null;
 
     const formattedBorrowed = new Intl.DateTimeFormat("en-CA", {
       year: "numeric",
@@ -496,12 +495,20 @@ async function loadTransaction() {
       day: "2-digit",
     }).format(borrowedAt);
 
-    const formattedReturned = returnedAt
+    const formattedReturned = transaction.returned_at
       ? new Intl.DateTimeFormat("en-CA", {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
-        }).format(returnedAt)
+        }).format(new Date(transaction.returned_at))
+      : "-";
+
+    const formattedDue = transaction.due_date
+      ? new Intl.DateTimeFormat("en-CA", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date(transaction.due_date))
       : "-";
 
     const tr = document.createElement("tr");
@@ -510,7 +517,7 @@ async function loadTransaction() {
     <td>${transaction.borrower_grade}</td>
     <td>${transaction.borrower_section}</td>
     <td>${formattedBorrowed}</td>
-    <td>${transaction.due_date}</td>
+    <td>${formattedDue}</td>
     <td>${transaction.transaction_id}</td>
     <td>?</td>
     <td>${formattedReturned}</td>
@@ -545,32 +552,35 @@ async function loadTransaction() {
     const statusTd = tr.querySelector("td:nth-child(7)");
     const editBtn = tr.querySelector(".edit-btn");
     const returnBtn = tr.querySelector(".return-btn");
+    const qrBtn = tr.querySelector(".qr-btn");
 
     const now = new Date();
     const dueDate = new Date(transaction.due_date);
 
-    if (transaction.returned_at) {
+    if (transaction.fully_returned) {
       statusTd.innerHTML = '<span class="status returned">Returned</span>';
 
       // Disable buttons
       editBtn.disabled = true;
       returnBtn.disabled = true;
+      qrBtn.disabled = true;
 
-      // Optional: add a CSS class to visually show disabled
       editBtn.classList.add("disabled");
       returnBtn.classList.add("disabled");
+      qrBtn.classList.add("disabled");
     } else if (now > dueDate) {
       const daysOverdue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
       statusTd.innerHTML = `<span class="status overdue">Overdue (${daysOverdue} d)</span>`;
 
-      // Keep buttons active
       editBtn.disabled = false;
       returnBtn.disabled = false;
+      qrBtn.disabled = false;
     } else {
       statusTd.innerHTML = '<span class="status active">Active</span>';
 
       editBtn.disabled = false;
       returnBtn.disabled = false;
+      qrBtn.disabled = false;
     }
 
     // Button listeners
@@ -1008,8 +1018,6 @@ confirmReturnBtn.addEventListener("click", async () => {
       transaction_id: returnModal.currentTransaction.transaction_id,
       books: returnDataToSend,
     });
-    console.log("Book in Transaction ", returnData);
-    console.log("Books Returned ", returnDataToSend);
 
     loadTransaction();
     loadBooks();
