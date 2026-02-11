@@ -9,8 +9,24 @@ const {
 const fs = require("fs");
 const { importBooksFromExcel } = require("./utils/helper/importhelper.js");
 
+// Single instance lock
+let mainWindow;
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    // If someone tries to open a second instance, focus on the existing window
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     frame: true,
@@ -23,16 +39,16 @@ function createWindow() {
     },
   });
 
-  win.setMenu(null);
-  win.loadFile("renderer/html/index.html");
+  mainWindow.setMenu(null);
+  mainWindow.loadFile("renderer/html/index.html");
 
-  win.once("ready-to-show", () => {
-    win.maximize();
-    win.show();
+  mainWindow.once("ready-to-show", () => {
+    mainWindow.maximize();
+    mainWindow.show();
   });
 
   // for debugging
-  win.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);
