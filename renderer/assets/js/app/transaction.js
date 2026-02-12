@@ -395,7 +395,7 @@ addTransactionForm.onsubmit = async (e) => {
       }
 
       selectedBooks.push({
-        id: row.cells[4].textContent.trim(), // Book ID
+        id: row.cells[4].textContent.trim(),
         qty,
       });
     });

@@ -41,4 +41,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Database Backup
   backupDatabase: () => ipcRenderer.invoke("backup-database"),
   resetDatabase: () => ipcRenderer.invoke("reset-database"),
+
+  // Navigation from notifications
+  onNavigatePage: (callback) => {
+    ipcRenderer.on("navigate-to-page", (event, page) => {
+      callback(page);
+    });
+  },
 });

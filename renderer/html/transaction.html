@@ -164,7 +164,7 @@
                           <input
                             type="text"
                             name="borrower_name"
-                            placeholder="ex. Ma'am Jacil Maris A. Luma-As"
+                            placeholder="ex. Atmosfera, Jherold Ng"
                           />
                         </div>
                         <small
@@ -178,7 +178,7 @@
                           <input
                             type="text"
                             name="section"
-                            placeholder="ex. Lapu-Lapu"
+                            placeholder="ex. Confucius"
                           />
                         </div>
                         <small class="error-message" data-for="section"></small>
@@ -189,7 +189,7 @@
                           <input
                             type="text"
                             name="grade"
-                            placeholder="ex. 12"
+                            placeholder="ex. 10"
                           />
                         </div>
                         <small class="error-message" data-for="grade"></small>
@@ -200,7 +200,7 @@
                           <input
                             type="text"
                             name="borrower_st_id"
-                            placeholder="ex. 2022xxxxx"
+                            placeholder="ex. 2021-0038"
                           />
                         </div>
                         <small
@@ -221,21 +221,7 @@
                             <th>Borrowing</th>
                           </tr>
                         </thead>
-                        <tbody id="listTableBody">
-                          <tr>
-                            <td>Sample</td>
-                            <td>Cain</td>
-                            <td>Araling Panlipunan</td>
-                            <td>1</td>
-                            <td>B24617808123</td>
-                            <td>
-                              <input
-                                type="text"
-                                placeholder="Amount of copies to request?"
-                              />
-                            </td>
-                          </tr>
-                        </tbody>
+                        <tbody id="listTableBody"></tbody>
                       </table>
                     </div>
                   </div>
@@ -363,7 +349,7 @@
                       <input
                         type="text"
                         name="borrower_name"
-                        placeholder="ex. Ma'am Jacil"
+                        placeholder="ex. Atmosfera, Jherold Ng"
                         required
                       />
                     </div>
@@ -379,7 +365,7 @@
                       <input
                         type="text"
                         name="borrower_st_id"
-                        placeholder="ex. 2022xxxxx"
+                        placeholder="ex. 2021-0038"
                         required
                       />
                     </div>
@@ -395,7 +381,7 @@
                       <input
                         type="text"
                         name="borrower_grade"
-                        placeholder="ex. 12"
+                        placeholder="ex. 10"
                         required
                       />
                     </div>
@@ -411,7 +397,7 @@
                       <input
                         type="text"
                         name="borrower_section"
-                        placeholder="ex. Lapu-Lapu"
+                        placeholder="ex. Confucius"
                         required
                       />
                     </div>
@@ -471,7 +457,7 @@
                   </div>
                 </div>
                 <div class="table-container">
-                  <table>
+                  <table id="infoTable">
                     <thead>
                       <tr>
                         <th>Title</th>
@@ -512,7 +498,7 @@
                   </div>
                 </div>
                 <div class="table-container">
-                  <table>
+                  <table id="returnTable">
                     <thead>
                       <tr>
                         <th>Title</th>
@@ -539,6 +525,7 @@
       </main>
     </div>
     <script src="../../node_modules/jsqr/dist/jsQR.js"></script>
+    <script src="../assets/js/app/nav-handler.js"></script>
     <script src="../assets/js/app/qrscan.js"></script>
 
     <script src="../assets/js/app/transaction.js"></script>
