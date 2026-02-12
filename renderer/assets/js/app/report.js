@@ -208,10 +208,11 @@ reportForm.addEventListener("submit", async (e) => {
   const result = await window.electronAPI.exportTransactions(filter);
 
   if (result.success) {
-    showNotification("Report exported successfully!.", "success", 3000);
+    showNotification("Report exported successfully!", "success", 3000);
 
     requestModal.classList.remove("show");
     document.body.style.overflow = "";
+    reportForm.reset();
   } else {
     showNotification(result.message || "Export failed.", "error", 3000);
   }

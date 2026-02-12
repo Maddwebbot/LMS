@@ -130,6 +130,7 @@ async function backupDatabase() {
   try {
     const path = await window.electronAPI.backupDatabase();
     showNotification("Backup created: " + path, "success", 2500);
+    window.location.reload();
   } catch (err) {
     showNotification("Failed to create backup.", "error", 2500);
     console.error(err);
