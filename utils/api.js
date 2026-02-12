@@ -21,6 +21,56 @@ function addBook(title, author, year, category, total_copies) {
   ).run(title, author, year, book_id, category, total_copies, total_copies);
 }
 
+function importBooksBulkWithDuplicates(books) {
+  const insert = db.prepare(`
+    INSERT INTO books (
+      title, author, year, book_id, category,
+      total_copies, available_amount
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const checkDuplicate = db.prepare(`
+    SELECT id FROM books
+    WHERE title = ?
+      AND author = ?
+      AND year = ?
+      AND is_deleted = 0
+  `);
+
+  let inserted = 0;
+  let duplicates = 0;
+
+  const transaction = db.transaction((rows) => {
+    for (const row of rows) {
+      const exists = checkDuplicate.get(row.title, row.author, row.year);
+
+      if (exists) {
+        duplicates++;
+        continue;
+      }
+
+      const book_id = generateBookId();
+
+      insert.run(
+        row.title,
+        row.author,
+        row.year,
+        book_id,
+        row.category,
+        row.total_copies,
+        row.total_copies,
+      );
+
+      inserted++;
+    }
+  });
+
+  transaction(books);
+
+  return { inserted, duplicates };
+}
+
 function deleteBook(id) {
   try {
     // 1️⃣ Check for active (unreturned) transactions
@@ -185,37 +235,56 @@ function addTransaction({ borrower, selectedBooks, dueDate }) {
 }
 
 function editTransaction(
-  id,
+  transaction_id,
   borrower_name,
   borrower_st_id,
   borrower_grade,
   borrower_section,
   due_date,
 ) {
-  db.prepare(
-    `
+  // Update ALL rows with this transaction_id (multiple books per transaction)
+  const result = db
+    .prepare(
+      `
     UPDATE transactions
     SET borrower_name = ?, borrower_st_id = ?, borrower_grade = ?, borrower_section = ?, due_date = ?
-    WHERE id = ?
+    WHERE transaction_id = ?
   `,
-  ).run(
-    borrower_name,
-    borrower_st_id,
-    borrower_grade,
-    borrower_section,
-    due_date,
-    id,
-  );
+    )
+    .run(
+      borrower_name,
+      borrower_st_id,
+      borrower_grade,
+      borrower_section,
+      due_date,
+      transaction_id,
+    );
+
+  if (result.changes === 0) {
+    throw new Error("Transaction not found");
+  }
 }
 
 function getTransactions() {
   return db
     .prepare(
       `
-      SELECT *
-      FROM transactions
-      GROUP BY transaction_id
-      ORDER BY id DESC
+      SELECT
+        t.transaction_id,
+        MIN(t.borrower_name) AS borrower_name,
+        MIN(t.borrower_st_id) AS borrower_st_id,
+        MIN(t.borrower_grade) AS borrower_grade,
+        MIN(t.borrower_section) AS borrower_section,
+        MIN(t.borrowed_at) AS borrowed_at,
+        MAX(t.due_date) AS due_date,
+        MAX(t.returned_at) AS returned_at, -- Latest returned_at
+        CASE
+          WHEN SUM(t.copies_borrowed - t.copies_returned) = 0 THEN 1
+          ELSE 0
+        END AS fully_returned
+      FROM transactions t
+      GROUP BY t.transaction_id
+      ORDER BY borrowed_at DESC
     `,
     )
     .all();
@@ -243,35 +312,45 @@ function getTransactionBooks(transactionId) {
     .all(transactionId);
 }
 
+// -------------------------
+// Return a single book's stock
+// -------------------------
 function returnBook(bookId, qty) {
   const book = db
     .prepare(
-      `SELECT available_amount, total_copies 
-       FROM books WHERE book_id = ?`,
+      `SELECT available_amount, total_copies FROM books WHERE book_id = ?`,
     )
     .get(bookId);
 
   if (!book) throw new Error(`Book ${bookId} not found`);
   if (qty <= 0) throw new Error("Return quantity must be positive");
 
-  if (book.available_amount + qty > book.total_copies) {
+  const newAvailable = book.available_amount + qty;
+
+  if (newAvailable > book.total_copies) {
     throw new Error("Return exceeds total copies");
   }
 
-  db.prepare(
-    `
-    UPDATE books
-    SET available_amount = available_amount + ?
-    WHERE book_id = ?
-  `,
-  ).run(qty, bookId);
+  db.prepare(`UPDATE books SET available_amount = ? WHERE book_id = ?`).run(
+    newAvailable,
+    bookId,
+  );
 }
 
+// -------------------------
+// Return multiple books in a single transaction
+// Returns updated transaction rows for frontend
+// -------------------------
 function returnBooks(transactionId, returnedBooks) {
+  if (!Array.isArray(returnedBooks) || returnedBooks.length === 0) {
+    throw new Error("No books to return");
+  }
+
   const now = new Date().toISOString();
 
   const tx = db.transaction(() => {
     returnedBooks.forEach(({ book_id, returning }) => {
+      // Fetch transaction row
       const txn = db
         .prepare(
           `
@@ -283,39 +362,66 @@ function returnBooks(transactionId, returnedBooks) {
         .get(transactionId.trim(), book_id.trim());
 
       if (!txn) {
-        throw new Error(`Transaction row not found for ${book_id}`);
+        throw new Error(`Transaction row not found for book ID ${book_id}`);
       }
 
-      const remaining = txn.copies_borrowed - txn.copies_returned;
+      const returnedSoFar = txn.copies_returned || 0;
+      const remaining = txn.copies_borrowed - returnedSoFar;
 
       if (remaining <= 0) {
-        throw new Error(`All copies already returned for ${book_id}`);
+        throw new Error(`All copies already returned for book ID ${book_id}`);
       }
-
       if (returning > remaining) {
         throw new Error(
-          `Cannot return ${returning}. Only ${remaining} remaining.`,
+          `Cannot return ${returning}. Only ${remaining} remaining for book ID ${book_id}.`,
         );
       }
 
+      // Update book stock
       returnBook(book_id, returning);
 
-      db.prepare(
-        `
-  UPDATE transactions
-  SET 
-    copies_returned = COALESCE(copies_returned, 0) + ?,
-    returned_at = CASE
-      WHEN COALESCE(copies_returned, 0) + ? >= copies_borrowed THEN ?
-      ELSE returned_at
-    END
-  WHERE transaction_id = ? AND book_id = ?
-`,
-      ).run(returning, returning, now, transactionId, book_id);
+      // Calculate total returned copies
+      const totalReturned = returnedSoFar + returning;
+
+      if (totalReturned >= txn.copies_borrowed) {
+        // Fully returned → set returned_at
+        db.prepare(
+          `
+          UPDATE transactions
+          SET copies_returned = ?, returned_at = ?
+          WHERE transaction_id = ? AND book_id = ?
+        `,
+        ).run(totalReturned, now, transactionId, book_id);
+      } else {
+        // Partial return → only update copies_returned
+        db.prepare(
+          `
+          UPDATE transactions
+          SET copies_returned = ?
+          WHERE transaction_id = ? AND book_id = ?
+        `,
+        ).run(totalReturned, transactionId, book_id);
+      }
     });
   });
 
-  tx(); // atomic execution
+  // Execute all updates atomically
+  tx();
+
+  // Fetch and return updated transactions
+  const updatedRows = returnedBooks.map(({ book_id }) =>
+    db
+      .prepare(
+        `
+        SELECT book_id, copies_borrowed, copies_returned, returned_at
+        FROM transactions
+        WHERE transaction_id = ? AND book_id = ?
+      `,
+      )
+      .get(transactionId.trim(), book_id.trim()),
+  );
+
+  return updatedRows;
 }
 
 // Report Statistics
@@ -578,6 +684,7 @@ function resetDatabase() {
 
 module.exports = {
   addBook,
+  importBooksBulkWithDuplicates,
   editBook,
   deleteBook,
   getBooks,

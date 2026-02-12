@@ -7,9 +7,62 @@ const {
   generateTransactionQRCode,
 } = require("./utils/helper/qrcode.js");
 const fs = require("fs");
+const { importBooksFromExcel } = require("./utils/helper/importhelper.js");
+const {
+  setMainWindow,
+  startOverdueCheck,
+} = require("./utils/helper/notificationHelper.js");
+
+// Set app name and ID for Windows notifications
+if (process.platform === "win32") {
+  app.setAppUserModelId("BookLing");
+}
+
+// Set application name to match package.json
+app.name = "BookLing";
+
+// Single instance lock
+let mainWindow;
+const gotTheLock = app.requestSingleInstanceLock();
+let isStartupMinimized = process.argv.includes("--minimized");
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", (event, argv) => {
+    // If someone tries to open a second instance or opening the app for a second time, focus on the existing window
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+// Set up auto-launch on system startup
+if (process.platform === "win32") {
+  app.setLoginItemSettings({
+    openAtLogin: true,
+    path: app.getPath("exe"),
+    args: ["--minimized"],
+  });
+
+  // Update Windows registry to show BookLing icon in startup
+  const { execSync } = require("child_process");
+  const iconPath = path.join(__dirname, "renderer/assets/icon.ico");
+
+  try {
+    // Register the app with icon in Windows registry
+    const exePath = app.getPath("exe");
+    execSync(
+      `reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "BookLing" /d "\\"${exePath}\\" --minimized" /f`,
+      { stdio: "pipe", windowsHide: true },
+    );
+  } catch (err) {
+    console.error("Error updating registry:", err.message);
+  }
+}
 
 function createWindow() {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     frame: true,
@@ -22,19 +75,48 @@ function createWindow() {
     },
   });
 
-  win.setMenu(null);
-  win.loadFile("renderer/html/index.html");
+  mainWindow.setMenu(null);
+  mainWindow.loadFile("renderer/html/index.html");
 
-  win.once("ready-to-show", () => {
-    win.maximize();
-    win.show();
+  // Set mainWindow reference for notification helper
+  setMainWindow(mainWindow);
+
+  mainWindow.once("ready-to-show", () => {
+    if (!isStartupMinimized) {
+      mainWindow.maximize();
+      mainWindow.show();
+    } else {
+      // Start minimized in system tray if launched on startup
+      mainWindow.hide();
+    }
+  });
+
+  // Handle window closed
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
 
   // for debugging
-  win.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+  createWindow();
+  await startOverdueCheck(); // Start checking for overdue transactions
+});
+
+// Quit app when all windows are closed (except on macOS)
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});
+// Re-create window on app activate (macOS)
+app.on("activate", () => {
+  if (mainWindow === null) {
+    createWindow();
+  }
+});
 
 // --- IPC Handlers ---
 
@@ -110,15 +192,16 @@ ipcMain.handle("get-transaction-books", (event, transactionId) => {
 });
 ipcMain.handle("add-transaction", (event, payload) => {
   try {
-    return api.addTransaction(payload);
+    const result = api.addTransaction(payload);
+    return result;
   } catch (err) {
     console.error(err);
     throw err;
   }
 });
-ipcMain.handle("edit-transaction", async (event, transaction) => {
+ipcMain.handle("edit-transaction", (event, transaction) => {
   try {
-    await api.editTransaction(
+    api.editTransaction(
       transaction.id,
       transaction.borrower_name,
       transaction.borrower_st_id,
@@ -132,7 +215,6 @@ ipcMain.handle("edit-transaction", async (event, transaction) => {
     return { success: false, error: err.message };
   }
 });
-
 ipcMain.handle("return-books", (_, data) => {
   const { transaction_id, books: returnedBooks } = data;
   try {
@@ -229,7 +311,6 @@ ipcMain.handle("export-transactions-filtered", async (_, filter) => {
 });
 
 // Settings Handlers
-
 const dbFile = path.join(app.getPath("userData"), "database", "pmci.db");
 
 // Backup folder
@@ -269,8 +350,6 @@ ipcMain.handle("get-library-settings", () => api.getLibrarySettings());
 ipcMain.handle("update-library-settings", (event, settings) =>
   api.updateLibrarySettings(settings),
 );
-
-// Folder to store logos
 ipcMain.handle("save-library-logo", async (event, fileName, uint8Array) => {
   if (!fileName || !uint8Array) throw new Error("No file provided");
 
@@ -285,9 +364,43 @@ ipcMain.handle("save-library-logo", async (event, fileName, uint8Array) => {
 
   return destPath; // full path in userData
 });
-
-ipcMain.handle("backup-database", () => api.backupDatabase());
-
+ipcMain.handle("backup-database", () => {
+  try {
+    const result = api.backupDatabase();
+    return result;
+  } catch (err) {
+    console.error("Backup Error:", err);
+    throw err;
+  }
+});
 ipcMain.handle("reset-database", async () => {
-  return api.resetDatabase();
+  try {
+    const result = api.resetDatabase();
+    return result;
+  } catch (err) {
+    console.error("Reset Error:", err);
+    throw err;
+  }
+});
+ipcMain.handle("import-books-from-excel", async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ["openFile"],
+    filters: [{ name: "Excel Files", extensions: ["xlsx", "xls"] }],
+  });
+
+  if (canceled) {
+    return { success: false, message: "Import cancelled" };
+  }
+
+  try {
+    const result = importBooksFromExcel(filePaths[0]);
+    return {
+      success: true,
+      inserted: result.inserted,
+      duplicates: result.duplicates,
+    };
+  } catch (err) {
+    console.error(err);
+    return { success: false, message: "Import failed" };
+  }
 });

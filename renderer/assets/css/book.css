@@ -221,6 +221,7 @@ main {
     }
     tbody {
       tr {
+        height: 80px;
         transition: 0.3s ease-in-out;
 
         &:nth-child(odd) {
@@ -230,9 +231,13 @@ main {
           transform: translateY(-1.3px);
         }
         td {
-          height: fit-content;
           padding: 0.3rem;
           text-align: center;
+
+          max-width: 160px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
 
           input[type="checkbox"] {
             cursor: pointer;

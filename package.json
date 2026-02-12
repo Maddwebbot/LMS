@@ -1,7 +1,7 @@
 {
   "name": "lms",
   "version": "1.0.0",
-  "description": "Desktop Application to be donated to the Phillipine Malabon Cultural Institute",
+  "description": "A desktop application for managing library resources and transactions.",
   "main": "main.js",
   "scripts": {
     "dev": "electronmon .",
@@ -12,7 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "Madwebbot",
+  "author": "JetFrame5",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -26,8 +26,8 @@
     "xlsx": "^0.18.5"
   },
   "build": {
-    "appId": "com.pmci.lms",
-    "productName": "LMS",
+    "appId": "BookLing",
+    "productName": "BookLing",
     "directories": {
       "buildResources": "assets",
       "output": "dist"

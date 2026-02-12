@@ -395,7 +395,7 @@ addTransactionForm.onsubmit = async (e) => {
       }
 
       selectedBooks.push({
-        id: row.cells[4].textContent.trim(), // Book ID
+        id: row.cells[4].textContent.trim(),
         qty,
       });
     });
@@ -425,6 +425,7 @@ addTransactionForm.onsubmit = async (e) => {
       "success",
       3000,
     );
+    selectAll.checked = false;
     addTransactionForm.reset();
     loadTransaction();
     loadBooks();
@@ -461,18 +462,19 @@ async function loadTransaction() {
       transaction.borrowed_at.toLowerCase().includes(searchTerm) ||
       transaction.due_date.toLowerCase().includes(searchTerm);
 
+    // Determine status text like in the table
     const now = new Date();
     const dueDate = new Date(transaction.due_date);
+    let statusText = "Active";
+
+    if (transaction.fully_returned) {
+      statusText = "Returned";
+    } else if (now > dueDate) {
+      statusText = "Overdue";
+    }
 
     const matchesStatus =
-      selectedStatusT === "All" ||
-      (selectedStatusT === "Returned" && transaction.returned_at) ||
-      (selectedStatusT === "Overdue" &&
-        !transaction.returned_at &&
-        now > dueDate) ||
-      (selectedStatusT === "Active" &&
-        !transaction.returned_at &&
-        now <= dueDate);
+      selectedStatusT === "All" || selectedStatusT === statusText;
 
     return matchesSearch && matchesStatus;
   });
@@ -486,9 +488,6 @@ async function loadTransaction() {
 
   filteredTransactions.forEach((transaction) => {
     const borrowedAt = new Date(transaction.borrowed_at);
-    const returnedAt = transaction.returned_at
-      ? new Date(transaction.returned_at)
-      : null;
 
     const formattedBorrowed = new Intl.DateTimeFormat("en-CA", {
       year: "numeric",
@@ -496,12 +495,20 @@ async function loadTransaction() {
       day: "2-digit",
     }).format(borrowedAt);
 
-    const formattedReturned = returnedAt
+    const formattedReturned = transaction.returned_at
       ? new Intl.DateTimeFormat("en-CA", {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
-        }).format(returnedAt)
+        }).format(new Date(transaction.returned_at))
+      : "-";
+
+    const formattedDue = transaction.due_date
+      ? new Intl.DateTimeFormat("en-CA", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date(transaction.due_date))
       : "-";
 
     const tr = document.createElement("tr");
@@ -510,7 +517,7 @@ async function loadTransaction() {
     <td>${transaction.borrower_grade}</td>
     <td>${transaction.borrower_section}</td>
     <td>${formattedBorrowed}</td>
-    <td>${transaction.due_date}</td>
+    <td>${formattedDue}</td>
     <td>${transaction.transaction_id}</td>
     <td>?</td>
     <td>${formattedReturned}</td>
@@ -545,32 +552,35 @@ async function loadTransaction() {
     const statusTd = tr.querySelector("td:nth-child(7)");
     const editBtn = tr.querySelector(".edit-btn");
     const returnBtn = tr.querySelector(".return-btn");
+    const qrBtn = tr.querySelector(".qr-btn");
 
     const now = new Date();
     const dueDate = new Date(transaction.due_date);
 
-    if (transaction.returned_at) {
+    if (transaction.fully_returned) {
       statusTd.innerHTML = '<span class="status returned">Returned</span>';
 
       // Disable buttons
       editBtn.disabled = true;
       returnBtn.disabled = true;
+      qrBtn.disabled = true;
 
-      // Optional: add a CSS class to visually show disabled
       editBtn.classList.add("disabled");
       returnBtn.classList.add("disabled");
+      qrBtn.classList.add("disabled");
     } else if (now > dueDate) {
       const daysOverdue = Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
       statusTd.innerHTML = `<span class="status overdue">Overdue (${daysOverdue} d)</span>`;
 
-      // Keep buttons active
       editBtn.disabled = false;
       returnBtn.disabled = false;
+      qrBtn.disabled = false;
     } else {
       statusTd.innerHTML = '<span class="status active">Active</span>';
 
       editBtn.disabled = false;
       returnBtn.disabled = false;
+      qrBtn.disabled = false;
     }
 
     // Button listeners
@@ -669,32 +679,8 @@ function openTransactionModal(transaction) {
     transaction.borrower_section || "";
   editTransactionForm.elements["due_date"].value = transaction.due_date || "";
 
-  // Store book ID in form dataset
-  editTransactionForm.dataset.transactionId = transaction.id;
-}
-
-// Edit Book frontend function
-async function editTransaction(
-  id,
-  borrower_name,
-  borrower_st_id,
-  borrower_grade,
-  borrower_section,
-  due_date,
-) {
-  try {
-    await window.electronAPI.editTransaction({
-      id,
-      borrower_name,
-      borrower_st_id,
-      borrower_grade,
-      borrower_section,
-      due_date,
-    });
-    await loadTransaction();
-  } catch (err) {
-    console.error("Failed to edit transaction:", err);
-  }
+  // Store transaction_id in form dataset
+  editTransactionForm.dataset.transactionId = transaction.transaction_id;
 }
 
 // Edit Transaction Form backend submission
@@ -744,7 +730,7 @@ editTransactionForm.addEventListener("submit", async (e) => {
   }
 
   try {
-    await window.electronAPI.editTransaction({
+    const response = await window.electronAPI.editTransaction({
       id: transactionId,
       borrower_name: borrower.name,
       borrower_st_id: borrower.id,
@@ -752,6 +738,16 @@ editTransactionForm.addEventListener("submit", async (e) => {
       borrower_section: borrower.section,
       due_date,
     });
+
+    // Check if API returned an error
+    if (response?.success === false) {
+      showNotification(
+        response?.error || "Failed to edit transaction!",
+        "error",
+        3000,
+      );
+      return;
+    }
 
     showNotification("Transaction edited successfully!", "success", 2500);
 
@@ -925,8 +921,6 @@ async function populateReturningList(transactionId) {
   tbody.innerHTML = "";
 
   const books = await window.electronAPI.getTransactionBooks(transactionId);
-
-  // ✅ STORE THEM HERE
   returnModal.transactionBooks = books;
 
   if (!Array.isArray(books) || books.length === 0) {
@@ -950,10 +944,10 @@ async function populateReturningList(transactionId) {
           class="returningQty"
           placeholder="Qty"
           data-index="${index}"
+          ${remaining <= 0 ? "disabled" : ""}
         />
       </td>
     `;
-
     tbody.appendChild(tr);
 
     const input = tr.querySelector(".returningQty");
@@ -964,16 +958,12 @@ async function populateReturningList(transactionId) {
       if (!val || val < 1) input.value = "";
       if (val > remaining) input.value = remaining;
     });
-
-    if (remaining <= 0) {
-      input.disabled = true;
-    }
   });
 }
 
-// ====================
+// -------------------------
 // Confirm Return Button
-// ====================
+// -------------------------
 confirmReturnBtn.addEventListener("click", async () => {
   if (!returnModal.currentTransaction) return;
 
@@ -983,31 +973,36 @@ confirmReturnBtn.addEventListener("click", async () => {
   rows.forEach((row) => {
     const input = row.querySelector(".returningQty");
     const qty = parseInt(input.value, 10) || 0;
-    if (qty > 0) {
-      const index = Number(input.dataset.index);
-      const book = returnModal.transactionBooks?.[index];
 
-      if (!book) {
-        console.warn("Invalid book index:", index);
-        return;
-      }
+    const index = Number(input.dataset.index);
+    const book = returnModal.transactionBooks?.[index];
+    if (!book) return;
 
-      returnData.push({
-        book_id: book.book_id,
-        returning: qty,
-      });
-    }
+    // Send ALL books, even qty 0
+    returnData.push({
+      book_id: book.book_id,
+      returning: qty,
+    });
   });
 
-  if (returnData.length === 0) {
+  // Check if user selected at least 1 book to return
+  const anyQty = returnData.some((b) => b.returning > 0);
+  if (!anyQty) {
     showNotification("No books selected to return!", "error", 2500);
     return;
   }
 
   try {
+    const returnDataToSend = returnData.filter((b) => b.returning > 0);
+
+    if (returnDataToSend.length === 0) {
+      showNotification("No books selected to return!", "error", 2500);
+      return;
+    }
+
     await window.electronAPI.returnBooks({
       transaction_id: returnModal.currentTransaction.transaction_id,
-      books: returnData,
+      books: returnDataToSend,
     });
 
     loadTransaction();
@@ -1072,6 +1067,8 @@ async function handleQRScan(targetInput, btn, icon) {
 
     resetScanUI();
     showNotification("QR scanned!", "success", 3000);
+    const successSound = new Audio("../assets/audio/scan.mp3");
+    successSound.play();
   } catch (err) {
     resetScanUI();
     showNotification(err.message, "error", 3000);

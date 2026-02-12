@@ -79,6 +79,10 @@ window.addEventListener("load", async () => {
 
 // ------------------------- Save Library Settings ------------------------------
 async function saveLibrarySettings() {
+  // Get current settings
+  const currentSettings = await window.electronAPI.getLibrarySettings();
+  const existingLogoPath = currentSettings.library_logo_path || null;
+
   const libraryName = document.getElementById("libraryName").value;
   const schoolName = document.getElementById("schoolName").value;
   const maxBooks = parseInt(document.getElementById("maxBooks").value);
@@ -88,16 +92,16 @@ async function saveLibrarySettings() {
     return showNotification("Please fill in all fields", "error", 2500);
   }
 
-  let logoPath = null;
+  let logoPath = existingLogoPath;
   const logoInput = document.getElementById("libraryLogo");
 
   if (logoInput.files.length > 0) {
     const file = logoInput.files[0];
     if (!file) return showNotification("No file selected", "error", 2500);
+
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
 
-    // Always give a file name
     logoPath = await window.electronAPI.saveLibraryLogo(
       "library-logo.png",
       uint8Array,
@@ -113,15 +117,19 @@ async function saveLibrarySettings() {
   };
 
   await window.electronAPI.updateLibrarySettings(settings);
-  window.location.reload();
-  showNotification("Settings Saved!", "success", 3000);
+
+  // Notification before reload
+  showNotification("Settings Saved!", "success", 1200);
+  setTimeout(() => {
+    window.location.reload();
+  }, 1210);
 }
 
-// ------------------------- Backup / Restore -----------------------------------
+// ------------------------- Backup / Reset || Drop / Import -----------------------------------
 async function backupDatabase() {
   try {
     const path = await window.electronAPI.backupDatabase();
-    showNotification("Backup created: " + path, "success", 3000);
+    showNotification("Backup created: " + path, "success", 2500);
     window.location.reload();
   } catch (err) {
     showNotification("Failed to create backup.", "error", 2500);
@@ -145,6 +153,20 @@ async function resetDatabase() {
   } catch (err) {
     console.error("Error occured upon deleting: ", err);
   }
+}
+
+async function importBooks() {
+  const result = await window.electronAPI.importBooksFromExcel();
+
+  if (!result.success) {
+    return showNotification(result.message, "error", 3000);
+  }
+
+  showNotification(
+    `Imported: ${result.inserted} | Duplicates skipped: ${result.duplicates}`,
+    "success",
+    4000,
+  );
 }
 
 // -------------------------

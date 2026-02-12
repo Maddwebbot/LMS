@@ -18,7 +18,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   editTransaction: (transaction) =>
     ipcRenderer.invoke("edit-transaction", transaction),
 
+  // need to be recoded
   returnBooks: (data) => ipcRenderer.invoke("return-books", data),
+
   generateTransactionQRCode: (transactionId) =>
     ipcRenderer.invoke("generate-transaction-qr", transactionId),
 
@@ -34,8 +36,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("update-library-settings", settings),
   saveLibraryLogo: (fileName, uint8Array) =>
     ipcRenderer.invoke("save-library-logo", fileName, uint8Array),
+  importBooksFromExcel: () => ipcRenderer.invoke("import-books-from-excel"),
 
   // Database Backup
   backupDatabase: () => ipcRenderer.invoke("backup-database"),
   resetDatabase: () => ipcRenderer.invoke("reset-database"),
+
+  // Navigation from notifications
+  onNavigatePage: (callback) => {
+    ipcRenderer.on("navigate-to-page", (event, page) => {
+      callback(page);
+    });
+  },
 });
