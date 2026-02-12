@@ -1,4 +1,4 @@
-OJT Project, System Simple Library Management System
+OJT Project, Simple Library Management System
 
 System Includes the ff: 
 
