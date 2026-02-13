@@ -10,107 +10,98 @@ document.addEventListener("DOMContentLoaded", async () => {
   const stats = await window.electronAPI.getStats();
   const summary = stats.summary;
 
-  // Total titled book collection
-  let totalBookTitleText = "";
-  let totalBookTitleColor = "";
-  const totalBookTitle = summary.totalBookTitle;
+  // =============================
+  // SUMMARY CARDS
+  // =============================
 
-  if (totalBookTitle === 0) {
-    totalBookTitleText = "No collection yet!";
-    totalBookTitleColor = "red";
-  } else if (totalBookTitle > 10) {
-    totalBookTitleText = "Large Collection";
-    totalBookTitleColor = "green";
-  } else {
-    totalBookTitleText = "Small Collection";
-    totalBookTitleColor = "orange";
+  function setSummary(
+    id,
+    value,
+    zeroText,
+    midText,
+    highText,
+    zeroColor,
+    midColor,
+    highColor,
+    midCondition,
+  ) {
+    let text = "";
+    let color = "";
+
+    if (value === 0) {
+      text = zeroText;
+      color = zeroColor;
+    } else if (midCondition(value)) {
+      text = midText;
+      color = midColor;
+    } else {
+      text = highText;
+      color = highColor;
+    }
+
+    document.getElementById(id).textContent = value;
+    document.getElementById(id + "Text").textContent = text;
+    document.getElementById(id + "Text").style.color = color;
   }
 
-  document.getElementById("totalBookTitle").textContent = totalBookTitle;
-  document.getElementById("totalBookTitleText").textContent =
-    totalBookTitleText;
-  document.getElementById("totalBookTitleText").style.color =
-    totalBookTitleColor;
+  setSummary(
+    "totalBookTitle",
+    summary.totalBookTitle,
+    "No collection yet!",
+    "Small Collection",
+    "Large Collection",
+    "red",
+    "orange",
+    "green",
+    (v) => v <= 10,
+  );
 
-  // Total Borrowings
-  let totalBorrowingsText = "";
-  let totalBorrowingsColor = "";
-  const totalBorrowings = summary.totalBorrowingsWeekly;
+  setSummary(
+    "totalBorrowings",
+    summary.totalBorrowingsWeekly,
+    "No borrowings yet",
+    "Moderate activity",
+    "High activity",
+    "red",
+    "orange",
+    "green",
+    (v) => v <= 10,
+  );
 
-  if (totalBorrowings === 0) {
-    totalBorrowingsText = "No borrowings yet";
-    totalBorrowingsColor = "red";
-  } else if (totalBorrowings > 10) {
-    totalBorrowingsText = "High activity";
-    totalBorrowingsColor = "green";
-  } else {
-    totalBorrowingsText = "Moderate activity";
-    totalBorrowingsColor = "orange";
-  }
+  setSummary(
+    "activeCheckouts",
+    summary.activeCheckoutsWeekly,
+    "All books are available",
+    "Few books were borrowed",
+    "Many books are checked out, send reminders",
+    "green",
+    "orange",
+    "red",
+    (v) => v < 10,
+  );
 
-  document.getElementById("totalBorrowings").textContent = totalBorrowings;
-  document.getElementById("totalBorrowingsText").textContent =
-    totalBorrowingsText;
-  document.getElementById("totalBorrowingsText").style.color =
-    totalBorrowingsColor;
+  setSummary(
+    "overdueBooks",
+    summary.overdueBooksWeekly,
+    "No overdue",
+    "Some overdue books!",
+    "High overdue count, warning them will be nice",
+    "green",
+    "orange",
+    "red",
+    (v) => v < 5,
+  );
 
-  // Active Checkouts
-  let activeCheckoutsText = "";
-  let activeCheckoutsColor = "";
-  const activeCheckouts = summary.activeCheckoutsWeekly;
+  // =============================
+  // MOST BORROWED CHART
+  // =============================
 
-  if (activeCheckouts === 0) {
-    activeCheckoutsText = "All books are available";
-    activeCheckoutsColor = "green";
-  } else if (activeCheckouts < 10) {
-    activeCheckoutsText = "Few books were borrowed";
-    activeCheckoutsColor = "orange";
-  } else {
-    activeCheckoutsText = "Many books are checked out, send out reminders";
-    activeCheckoutsColor = "red";
-  }
-
-  document.getElementById("activeCheckouts").textContent = activeCheckouts;
-  document.getElementById("activeCheckoutsText").textContent =
-    activeCheckoutsText;
-  document.getElementById("activeCheckoutsText").style.color =
-    activeCheckoutsColor;
-
-  // Overdue Books
-  let overdueBooksText = "";
-  let overdueBooksColor = "";
-  const overdueBooks = summary.overdueBooksWeekly;
-
-  if (overdueBooks === 0) {
-    overdueBooksText = "No overdue";
-    overdueBooksColor = "green";
-  } else if (overdueBooks < 5) {
-    overdueBooksText = "Some overdue books!";
-    overdueBooksColor = "orange";
-  } else {
-    overdueBooksText = "High overdue count, warning them will be nice";
-    overdueBooksColor = "red";
-  }
-
-  document.getElementById("overdueBooks").textContent = overdueBooks;
-  document.getElementById("overdueBooksText").textContent = overdueBooksText;
-  document.getElementById("overdueBooksText").style.color = overdueBooksColor;
-
-  // -----------------------------
-  // Charts
-  // -----------------------------
-
-  // -----------------------------
-  // Most Borrowed Books (Horizontal Bar)
-  // -----------------------------
-  // Existing chart data
   const topBooksLabels = stats.mostBorrowed.map((b) => b.book);
   const topBooksData = stats.mostBorrowed.map((b) => b.total);
   const topBooksColors = stats.mostBorrowed.map((b) =>
     b.status === "active" ? "#2563EB" : "#DC2626",
   );
 
-  // Create the chart
   new Chart(document.getElementById("mostBorrowedBooks"), {
     type: "bar",
     data: {
@@ -131,26 +122,40 @@ document.addEventListener("DOMContentLoaded", async () => {
           beginAtZero: true,
           title: { display: true, text: "Times Borrowed" },
         },
-        y: { title: { display: true, text: "Book Title" } },
+        y: {
+          title: { display: true, text: "Book Title" },
+          ticks: {
+            callback: function (value) {
+              const label = this.getLabelForValue(value);
+              return label.length > 25 ? label.substring(0, 25) + "..." : label;
+            },
+          },
+        },
       },
-      plugins: { legend: { display: false } }, // hide default legend
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: function (tooltipItems) {
+              return topBooksLabels[tooltipItems[0].dataIndex];
+            },
+          },
+        },
+      },
     },
   });
 
-  // Manual legend
+  // Manual Legend
   const legendContainer = document.getElementById("mostBorrowedLegend");
   legendContainer.innerHTML = `
-  <span style="display:inline-block;width:12px;height:12px;background:#2563EB;margin-right:5px;"></span> Active
-  <span style="display:inline-block;width:12px;height:12px;background:#DC2626;margin-left:15px;margin-right:5px;"></span> Archived
-`;
+    <span style="display:inline-block;width:12px;height:12px;background:#2563EB;margin-right:5px;"></span> Active
+    <span style="display:inline-block;width:12px;height:12px;background:#DC2626;margin-left:15px;margin-right:5px;"></span> Archived
+  `;
 
-  // -----------------------------
-  // Table
-  // -----------------------------
+  // =============================
+  // RECENTLY ADDED TABLE
+  // =============================
 
-  // -----------------------------
-  // Recently Added Books Table
-  // -----------------------------
   const recentAddedBooks = stats.recentTitle || [];
   const addedTableBody = document.getElementById("recentAddedBooks");
   addedTableBody.innerHTML = "";
@@ -168,11 +173,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     row.innerHTML = `
-    <td>${b.title}</td>
-    <td>${b.author}</td>
-    <td>${b.year}</td>
-    <td>${displayCategory}</td>
-  `;
+      <td title="${b.title}">${b.title}</td>
+      <td title="${b.author}">${b.author}</td>
+      <td>${b.year}</td>
+      <td title="${displayCategory}">${displayCategory}</td>
+    `;
 
     addedTableBody.appendChild(row);
   });

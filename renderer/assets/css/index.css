@@ -193,6 +193,9 @@ main {
 
           tr {
             transition: 0.3s ease-in-out;
+            &.archived {
+              opacity: 0.6;
+            }
 
             &:nth-child(odd) {
               background: #e7e7e7;
@@ -203,6 +206,11 @@ main {
             td {
               padding: 1rem;
               text-align: left;
+
+              max-width: 220px;
+              overflow: hidden;
+              white-space: nowrap;
+              text-overflow: ellipsis;
             }
           }
         }
