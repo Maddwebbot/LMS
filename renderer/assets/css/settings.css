@@ -208,6 +208,24 @@ button {
   transition: all 0.3s ease;
 }
 
+.btn-primary-a {
+  text-decoration: none;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: var(--cl1);
+  color: white;
+  &:hover {
+    background-color: var(--cl1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(44, 185, 16, 0.3);
+  }
+}
+
 .btn-primary {
   background-color: var(--cl1);
   color: white;

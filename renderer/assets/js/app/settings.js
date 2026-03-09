@@ -169,6 +169,26 @@ async function importBooks() {
   );
 }
 
+async function downloadTemplate() {
+  try {
+    await window.electronAPI.downloadTemplate();
+    showNotification("Template successfully downloaded.", "success", 2500);
+  } catch (err) {
+    showNotification("Failed to download template.", "error", 2500);
+    console.error(err);
+  }
+}
+
+async function downloadManual() {
+  try {
+    await window.electronAPI.downloadManual();
+    showNotification("User manual successfully downloaded.", "success", 2500);
+  } catch (err) {
+    showNotification("Failed to download user manual.", "error", 2500);
+    console.error(err);
+  }
+}
+
 // -------------------------
 // Notification working and Confirmation Modal
 // -------------------------

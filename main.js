@@ -97,7 +97,7 @@ function createWindow() {
   });
 
   // for debugging
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(async () => {
@@ -402,5 +402,46 @@ ipcMain.handle("import-books-from-excel", async () => {
   } catch (err) {
     console.error(err);
     return { success: false, message: "Import failed" };
+  }
+});
+
+ipcMain.handle("download-template", async () => {
+  try {
+    const { filePath } = await dialog.showSaveDialog({
+      title: "Download Import Template",
+      defaultPath: "books-import-template.xlsx",
+      filters: [{ name: "Excel Files", extensions: ["xlsx"] }],
+    });
+
+    if (!filePath) return { success: false, message: "Download cancelled" };
+
+    const templatePath = path.join(__dirname, "renderer/assets/sample.xlsx");
+    fs.copyFileSync(templatePath, filePath);
+    return { success: true, filePath };
+  } catch (err) {
+    console.error("Template Download Error:", err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle("download-manual", async () => {
+  try {
+    const { filePath } = await dialog.showSaveDialog({
+      title: "Download User Manual",
+      defaultPath: "BookLing_User_Manual.pdf",
+      filters: [{ name: "PDF Files", extensions: ["pdf"] }],
+    });
+
+    if (!filePath) return { success: false, message: "Download cancelled" };
+
+    const manualPath = path.join(
+      __dirname,
+      "renderer/assets/BookLing_User_Manual.pdf",
+    );
+    fs.copyFileSync(manualPath, filePath);
+    return { success: true, filePath };
+  } catch (err) {
+    console.error("Manual Download Error:", err);
+    return { success: false, error: err.message };
   }
 });

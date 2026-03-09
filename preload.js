@@ -37,6 +37,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveLibraryLogo: (fileName, uint8Array) =>
     ipcRenderer.invoke("save-library-logo", fileName, uint8Array),
   importBooksFromExcel: () => ipcRenderer.invoke("import-books-from-excel"),
+  downloadTemplate: () => ipcRenderer.invoke("download-template"),
+  downloadManual: () => ipcRenderer.invoke("download-manual"),
 
   // Database Backup
   backupDatabase: () => ipcRenderer.invoke("backup-database"),
