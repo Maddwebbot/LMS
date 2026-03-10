@@ -148,7 +148,8 @@ main {
       }
     }
     #resetFilters,
-    #deleteSelected {
+    #deleteSelected,
+    #createQRSelected {
       cursor: pointer;
     }
     #resetFilters {
@@ -187,6 +188,36 @@ main {
       }
       &:active {
         transform: var(--activate);
+      }
+    }
+    #createQRSelected {
+      height: 40px;
+      background: #3498db;
+      color: var(--cl3);
+      border: none;
+      border-radius: 7px;
+      font-weight: bolder;
+      text-transform: uppercase;
+      padding: 0 1rem;
+      transition: 0.3s ease-in-out;
+      object-fit: cover;
+
+      &:hover {
+        transform: var(--hovering);
+      }
+      &:active {
+        transform: var(--activate);
+      }
+    }
+
+    .bulk {
+      width: 55px;
+      height: 50px;
+      border: none;
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
       }
     }
   }

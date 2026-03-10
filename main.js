@@ -345,7 +345,6 @@ ipcMain.handle("get-database-info", () => {
     allBackups, // optional, useful for frontend display
   };
 });
-
 ipcMain.handle("get-library-settings", () => api.getLibrarySettings());
 ipcMain.handle("update-library-settings", (event, settings) =>
   api.updateLibrarySettings(settings),
@@ -404,7 +403,6 @@ ipcMain.handle("import-books-from-excel", async () => {
     return { success: false, message: "Import failed" };
   }
 });
-
 ipcMain.handle("download-template", async () => {
   try {
     const { filePath } = await dialog.showSaveDialog({
@@ -423,7 +421,6 @@ ipcMain.handle("download-template", async () => {
     return { success: false, error: err.message };
   }
 });
-
 ipcMain.handle("download-manual", async () => {
   try {
     const { filePath } = await dialog.showSaveDialog({
