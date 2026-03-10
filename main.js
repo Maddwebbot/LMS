@@ -168,8 +168,20 @@ ipcMain.handle("delete-book", async (event, id) => {
   }
 });
 
-ipcMain.handle("generate-book-qr", async (event, bookId) => {
-  const filePath = await generateBookQRCode(bookId);
+ipcMain.handle("generate-book-qr", async (event, payload) => {
+  // payload can be a plain id or an object containing extra metadata
+  let args;
+  if (typeof payload === "object" && payload !== null) {
+    // normalize name for internal helper, but keep all other fields (e.g. open)
+    const bookId = payload.bookId || payload.id || payload.book_id;
+    args = { ...payload, bookId };
+    // remove alternative keys if any
+    delete args.id;
+    delete args.book_id;
+  } else {
+    args = payload; // simple id
+  }
+  const filePath = await generateBookQRCode(args);
   return filePath;
 });
 ipcMain.handle("generate-transaction-qr", async (event, transactionId) => {

@@ -14,26 +14,67 @@ if (!fs.existsSync(qrBaseDir)) {
   fs.mkdirSync(qrBaseDir, { recursive: true });
 }
 
+// simple helper that replaces characters invalid in file/folder names
+function sanitizeFilename(name) {
+  if (!name) return "";
+  // strip path separators and other illegal Windows chars
+  return name.replace(/[\\/:*?"<>|]/g, "-").trim();
+}
+
 // --------------------
 // BOOK QR CODE
 // --------------------
-async function generateBookQRCode(bookId) {
+/**
+ * Generate a QR code for a book.
+ *
+ * The function accepts either a string (bookId) for backwards compatibility
+ * or an object containing { bookId, title, category }.
+ * If a category is provided the QR image will be placed in a subfolder named
+ * after the category. The file name will use the sanitized book title if
+ * available, otherwise the ID itself.
+ */
+async function generateBookQRCode(bookIdOrObj) {
   try {
-    const qrDir = path.join(qrBaseDir, "QRBooks");
+    // normalize input
+    let bookId;
+    let title;
+    let category;
+    let doOpen = true;
 
+    if (typeof bookIdOrObj === "object" && bookIdOrObj !== null) {
+      bookId = bookIdOrObj.bookId || bookIdOrObj.id || bookIdOrObj.book_id;
+      title = bookIdOrObj.title;
+      category = bookIdOrObj.category;
+      if (bookIdOrObj.hasOwnProperty("open")) {
+        doOpen = !!bookIdOrObj.open;
+      }
+    } else {
+      bookId = bookIdOrObj;
+    }
+
+    // prepare directory structure
+    let qrDir = path.join(qrBaseDir, "QRBooks");
+    if (category) {
+      qrDir = path.join(qrDir, sanitizeFilename(category));
+    }
     if (!fs.existsSync(qrDir)) {
       fs.mkdirSync(qrDir, { recursive: true });
     }
 
-    const filePath = path.join(qrDir, `${bookId}.png`);
+    // choose filename
+    const fileName = title ? `${sanitizeFilename(title)}.png` : `${bookId}.png`;
+
+    const filePath = path.join(qrDir, fileName);
 
     await QRCode.toFile(filePath, bookId, {
       color: { dark: "#000000", light: "#ffffff" },
       width: 300,
     });
 
-    // Auto-open image
-    await shell.openPath(filePath);
+    // Auto-open image if allowed
+    if (doOpen) {
+      await shell.openPath(filePath);
+    }
 
     console.log("Book QR code generated at:", filePath);
     return filePath;

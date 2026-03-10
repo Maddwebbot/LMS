@@ -7,8 +7,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   addBook: (book) => ipcRenderer.invoke("add-book", book),
   editBook: (book) => ipcRenderer.invoke("edit-book", book),
   deleteBook: (id) => ipcRenderer.invoke("delete-book", id),
-  generateBookQRCode: (bookId) =>
-    ipcRenderer.invoke("generate-book-qr", bookId),
+  // bookIdOrObj may be a string or an object containing {bookId, title, category}
+  generateBookQRCode: (bookIdOrObj) =>
+    ipcRenderer.invoke("generate-book-qr", bookIdOrObj),
 
   // Transaction Page
   getTransactions: () => ipcRenderer.invoke("get-transactions"),

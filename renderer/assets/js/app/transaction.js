@@ -270,7 +270,7 @@ function setupBorrowerInputValidation() {
 
   // Student No.: numbers only
   studentNoInput.addEventListener("input", () => {
-    studentNoInput.value = studentNoInput.value.replace(/[^0-9]/g, "");
+    studentNoInput.value = studentNoInput.value.replace(/[^0-9-]/g, "");
 
     // Limit to 9 digits max
     if (studentNoInput.value.length > 9) {

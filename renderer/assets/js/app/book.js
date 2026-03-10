@@ -241,7 +241,9 @@ async function deleteMultipleBooks(ids) {
 }
 
 const deleteSelectedBtn = document.getElementById("deleteSelected");
+const createQRSelectedBtn = document.getElementById("createQRSelected");
 
+// handler for deleting multiple books
 deleteSelectedBtn?.addEventListener("click", async () => {
   const ids = getSelectedBooks();
 
@@ -266,6 +268,49 @@ deleteSelectedBtn?.addEventListener("click", async () => {
 
   // Refresh table
   loadBooks();
+});
+
+// handler for creating QR codes for selected books
+createQRSelectedBtn?.addEventListener("click", async () => {
+  const ids = getSelectedBooks();
+  if (ids.length === 0) return; // nothing selected
+
+  try {
+    const books = await window.electronAPI.getBooks();
+    const toGenerate = books.filter((b) => ids.includes(b.id.toString()));
+
+    for (const book of toGenerate) {
+      try {
+        await window.electronAPI.generateBookQRCode({
+          bookId: book.book_id,
+          title: book.title,
+          category: book.category,
+          open: false, // avoid popping up dozens of windows during bulk export
+        });
+        showNotification(
+          `QR code generated for "${book.title}"`,
+          "success",
+          1500,
+        );
+      } catch (err) {
+        console.error(`Failed to generate QR for ${book.title}:`, err);
+        showNotification(
+          `Failed to generate QR for "${book.title}"`,
+          "error",
+          2000,
+        );
+      }
+    }
+
+    // optional: clear selection after generation
+    selectedBooks.clear();
+    const selectAllCheckbox = document.getElementById("selectAll");
+    if (selectAllCheckbox) selectAllCheckbox.checked = false;
+    loadBooks();
+  } catch (err) {
+    console.error("Error while generating QR codes:", err);
+    showNotification("Failed to create QR codes", "error", 3000);
+  }
 });
 
 // -------------------------
