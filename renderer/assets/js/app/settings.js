@@ -172,6 +172,31 @@ async function restoreBackup() {
   }
 }
 
+async function importBackup() {
+  try {
+    const confirm = await customConfirm(
+      "Importing a backup will replace your current database and cannot be undone. Continue?",
+    );
+    if (!confirm) return;
+
+    const res = await window.electronAPI.importBackup();
+    if (res.success) {
+      showNotification(
+        "Database imported; the application will restart.",
+        "success",
+        3000,
+      );
+      // the restart is triggered by main.js – no need to reload here
+    } else if (res.error && res.error !== "No file selected") {
+      showNotification("Import failed: " + res.error, "error", 3000);
+    }
+  } catch (err) {
+    console.error("importBackup error:", err);
+    showNotification("Import failed.", "error", 3000);
+  }
+}
+window.importBackup = importBackup;
+
 async function resetDatabase() {
   try {
     const confirm = await customConfirm(

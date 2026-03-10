@@ -300,7 +300,7 @@ ipcMain.handle("export-transactions-filtered", async (_, filter) => {
         : [{ name: "CSV Files", extensions: ["csv"] }],
     });
 
-    if (!filePath) return { success: false }; // user canceled
+    if (!filePath) return { success: false };
 
     // -------------------------
     // 4️⃣ Export the file
@@ -384,20 +384,15 @@ ipcMain.handle("backup-database", () => {
     throw err;
   }
 });
-
 ipcMain.handle("restore-backup", async () => {
   try {
     const backupDir = path.join(app.getPath("userData"), "backups");
-    const { canceled, filePaths } = await dialog.showOpenDialog({
+    const filePaths = await dialog.showOpenDialog({
       title: "Select Backup File",
       defaultPath: backupDir,
       properties: ["openFile"],
       filters: [{ name: "Backup Files", extensions: ["db"] }],
     });
-
-    if (canceled || filePaths.length === 0) {
-      return { success: false, message: "Restore cancelled" };
-    }
 
     const backupPath = filePaths[0];
     const result = api.restoreDatabase(backupPath);
@@ -417,7 +412,23 @@ ipcMain.handle("restore-backup", async () => {
     return { success: false, error: err.message };
   }
 });
+ipcMain.handle("import-backup", async () => {
+  const filePaths = await dialog.showOpenDialog({
+    title: "Select a database file to import",
+    defaultPath: app.getPath("desktop"),
+    filters: [{ name: "SQLite database", extensions: ["db"] }],
+    properties: ["openFile"],
+  });
 
+  const result = await api.restoreDatabase(filePaths[0]);
+  if (result.success) {
+    setTimeout(() => {
+      app.relaunch({ args: process.argv.slice(1) });
+      app.exit(0);
+    }, 4100);
+  }
+  return result;
+});
 ipcMain.handle("reset-database", async () => {
   try {
     const result = api.resetDatabase();
@@ -427,15 +438,12 @@ ipcMain.handle("reset-database", async () => {
     throw err;
   }
 });
+
 ipcMain.handle("import-books-from-excel", async () => {
-  const { canceled, filePaths } = await dialog.showOpenDialog({
+  const filePaths = await dialog.showOpenDialog({
     properties: ["openFile"],
     filters: [{ name: "Excel Files", extensions: ["xlsx", "xls"] }],
   });
-
-  if (canceled) {
-    return { success: false, message: "Import cancelled" };
-  }
 
   try {
     const result = importBooksFromExcel(filePaths[0]);
