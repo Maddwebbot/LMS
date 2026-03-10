@@ -97,7 +97,7 @@ function createWindow() {
   });
 
   // for debugging
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(async () => {
@@ -384,6 +384,30 @@ ipcMain.handle("backup-database", () => {
     throw err;
   }
 });
+
+ipcMain.handle("restore-backup", async () => {
+  try {
+    const backupDir = path.join(app.getPath("userData"), "backups");
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: "Select Backup File",
+      defaultPath: backupDir,
+      properties: ["openFile"],
+      filters: [{ name: "Backup Files", extensions: ["db"] }],
+    });
+
+    if (canceled || filePaths.length === 0) {
+      return { success: false, message: "Restore cancelled" };
+    }
+
+    const backupPath = filePaths[0];
+    const result = api.restoreDatabase(backupPath);
+    return result;
+  } catch (err) {
+    console.error("Restore Error:", err);
+    return { success: false, error: err.message };
+  }
+});
+
 ipcMain.handle("reset-database", async () => {
   try {
     const result = api.resetDatabase();

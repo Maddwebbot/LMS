@@ -1,4 +1,4 @@
-const db = require("./db");
+let db = require("./db");
 const stats = require("./stats");
 
 // QR-Code Unique ID Generation
@@ -550,6 +550,7 @@ const dbDir = path.join(app.getPath("userData"), "database");
 const dbPath = path.join(dbDir, "pmci.db");
 
 function getLibrarySettings() {
+  ensureDb();
   return db.prepare("SELECT * FROM settings WHERE id = 1").get();
 }
 
@@ -607,6 +608,41 @@ function saveLibraryLogo(filePath, fileName) {
   return destPath;
 }
 
+/**
+ * Restore database from a given backup file.
+ *
+ * Steps:
+ * 1. Rename current pmci.db to pmci_old_<timestamp>.db (if it exists)
+ * 2. Move/rename the selected backup file into the database folder as pmci.db
+ *
+ * @param {string} backupFilePath - full path to the backup file selected by user
+ * @returns {{success: boolean, oldPath?: string, newPath?: string}}
+ */
+
+// helper used by the “better‑safe‑restore” flow
+function closeDbConnection() {
+  if (db && typeof db.close === "function") {
+    try {
+      db.close();
+    } catch (e) {
+      // ignore – we’re just trying to release the handle
+      console.warn("closeDbConnection():", e);
+    }
+    db = null;
+  }
+}
+
+function reopenDbConnection() {
+  if (!db) {
+    delete require.cache[require.resolve("./db")];
+    db = require("./db");
+  }
+}
+
+function ensureDb() {
+  if (!db) reopenDbConnection();
+}
+
 // Backup / Auto Backup / Drop Database / Import
 function backupDatabase() {
   const backupDir = path.join(app.getPath("userData"), "backups");
@@ -620,8 +656,57 @@ function backupDatabase() {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   const backupFile = path.join(backupDir, `backup_${timestamp}.db`);
 
+  // make sure the file isn’t locked while we copy it
+  closeDbConnection();
   fs.copyFileSync(dbPath, backupFile);
+  reopenDbConnection();
+
   return backupFile;
+}
+
+/**
+ * Restore database from a given backup file.
+ *
+ * Steps:
+ * 1. close current connection
+ * 2. rename current pmci.db to pmci_old_<timestamp>.db
+ * 3. copy restore file into place (leave original backup intact)
+ * 4. reopen the database
+ */
+function restoreDatabase(backupFilePath) {
+  if (!backupFilePath || !fs.existsSync(backupFilePath)) {
+    return { success: false, error: "Backup file not found" };
+  }
+
+  // ensure database dir exists
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const oldName = `pmci_old_${timestamp}.db`;
+  const oldPath = path.join(dbDir, oldName);
+
+  try {
+    // 1️⃣ close the handle so the file is not locked
+    closeDbConnection();
+
+    // 2️⃣ move the existing database out of the way
+    if (fs.existsSync(dbPath)) {
+      fs.renameSync(dbPath, oldPath);
+    }
+
+    // 3️⃣ copy the selected backup into place
+    fs.copyFileSync(backupFilePath, dbPath);
+
+    // 4️⃣ re‑open a fresh connection for the running app
+    reopenDbConnection();
+
+    return { success: true, oldPath, newPath: dbPath };
+  } catch (err) {
+    console.error("Error restoring database:", err);
+    return { success: false, error: err.message };
+  }
 }
 
 function resetDatabase() {
@@ -704,5 +789,8 @@ module.exports = {
   saveLibraryLogo,
 
   backupDatabase,
+  restoreDatabase,
   resetDatabase,
+  closeDbConnection,
+  reopenDbConnection,
 };

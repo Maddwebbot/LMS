@@ -137,6 +137,41 @@ async function backupDatabase() {
   }
 }
 
+async function restoreBackup() {
+  try {
+    const confirm = await customConfirm(
+      "Restoring a backup will replace your current database and cannot be undone. Continue?",
+    );
+    if (!confirm) return;
+
+    const result = await window.electronAPI.restoreBackup();
+    if (!result.success) {
+      showNotification(
+        result.message || result.error || "Restore cancelled",
+        "info",
+        2500,
+      );
+      return;
+    }
+
+    let msg = "Backup restored successfully.";
+    if (result.oldPath) {
+      const name = result.oldPath.split(/[\\/]/).pop();
+      msg += ` Previous database renamed to ${name}`;
+    }
+
+    showNotification(msg, "success", 3000);
+
+    // give a moment before reloading so user sees notification
+    setTimeout(() => {
+      window.location.reload();
+    }, 3100);
+  } catch (err) {
+    showNotification("Failed to restore backup.", "error", 2500);
+    console.error(err);
+  }
+}
+
 async function resetDatabase() {
   try {
     const confirm = await customConfirm(
