@@ -688,19 +688,13 @@ function restoreDatabase(backupFilePath) {
   const oldPath = path.join(dbDir, oldName);
 
   try {
-    // 1️⃣ close the handle so the file is not locked
     closeDbConnection();
 
-    // 2️⃣ move the existing database out of the way
     if (fs.existsSync(dbPath)) {
       fs.renameSync(dbPath, oldPath);
     }
 
-    // 3️⃣ copy the selected backup into place
     fs.copyFileSync(backupFilePath, dbPath);
-
-    // 4️⃣ re‑open a fresh connection for the running app
-    reopenDbConnection();
 
     return { success: true, oldPath, newPath: dbPath };
   } catch (err) {

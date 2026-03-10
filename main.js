@@ -401,6 +401,16 @@ ipcMain.handle("restore-backup", async () => {
 
     const backupPath = filePaths[0];
     const result = api.restoreDatabase(backupPath);
+
+    if (result.success) {
+      // give the renderer a moment to receive the reply, then restart
+      setTimeout(() => {
+        // relaunch with the same arguments; add a flag if you like
+        app.relaunch({ args: process.argv.slice(1) });
+        app.exit(0);
+      }, 4100);
+    }
+
     return result;
   } catch (err) {
     console.error("Restore Error:", err);

@@ -10,9 +10,10 @@ THING I COULD NOT IMPLEMENT RUN OUT OF TIME LOL
 
 - word applied to report type export if want
 
-- reports can be expanded since is_deleted in the database of books can be used in exporting archived or unarchived books or both
-  like the user can select if they want to export archived or unarchived data or even both
+- reports can be expanded since is_deleted in the database of books can be used in exporting archived or unarchived books or both, like the user can select if they want to export archived or unarchived data or even both
 
 - book management add archived and unarchives section ibabase (is_deleted) sa database table books
 
-- auto backup set like for every 1 min, 30mins,1hr, or something
+- auto backup function that can be set like for every 1 min, 30mins,1hr, or something
+
+- add cloud to it so backups are more secured
