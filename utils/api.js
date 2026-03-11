@@ -754,7 +754,7 @@ function resetDatabase() {
     `);
 
     db.close();
-    return { success: true, msg: "Database has been reset successfully!" };
+    return { success: true, msg: "Records reseted successfully!" };
   } catch (err) {
     console.error("Error resetting database:", err);
     return { success: false, error: err.message };
