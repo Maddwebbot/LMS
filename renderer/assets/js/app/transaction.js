@@ -649,7 +649,7 @@ function setupEditTransactionInputValidation() {
 
   // 🆔 Student No.: numbers only (max 9 digits)
   studentNoInput.addEventListener("input", () => {
-    studentNoInput.value = studentNoInput.value.replace(/[^0-9]/g, "");
+    studentNoInput.value = studentNoInput.value.replace(/[^0-9-]/g, "");
 
     if (studentNoInput.value.length > 9) {
       studentNoInput.value = studentNoInput.value.slice(0, 9);

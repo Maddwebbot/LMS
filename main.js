@@ -375,6 +375,7 @@ ipcMain.handle("save-library-logo", async (event, fileName, uint8Array) => {
 
   return destPath; // full path in userData
 });
+
 ipcMain.handle("backup-database", () => {
   try {
     const result = api.backupDatabase();
@@ -424,7 +425,11 @@ ipcMain.handle("import-backup", async () => {
     properties: ["openFile"],
   });
   if (canceled || filePaths.length === 0) {
-    return { success: false, error: "No file selected" };
+    return {
+      success: false,
+      message: "Import Backup Selection Cancelled",
+      error: "No file selected",
+    };
   }
   const result = await api.restoreDatabase(filePaths[0]);
   if (result.success) {
@@ -471,15 +476,15 @@ ipcMain.handle("download-template", async () => {
   try {
     const { filePath } = await dialog.showSaveDialog({
       title: "Download Import Template",
-      defaultPath: "books-import-template.xlsx",
+      defaultPath: "book-import-template.xlsx",
       filters: [{ name: "Excel Files", extensions: ["xlsx"] }],
     });
 
-    if (!filePath) return { success: false, message: "Download cancelled" };
+    if (!filePath) return { success: false, message: "Download Cancelled" };
 
     const templatePath = path.join(__dirname, "renderer/assets/sample.xlsx");
     fs.copyFileSync(templatePath, filePath);
-    return { success: true, filePath };
+    return { success: true, message: "Downloaded successfully", filePath };
   } catch (err) {
     console.error("Template Download Error:", err);
     return { success: false, error: err.message };
@@ -489,18 +494,15 @@ ipcMain.handle("download-manual", async () => {
   try {
     const { filePath } = await dialog.showSaveDialog({
       title: "Download User Manual",
-      defaultPath: "BookLing_User_Manual.pdf",
+      defaultPath: "User_Manual.pdf",
       filters: [{ name: "PDF Files", extensions: ["pdf"] }],
     });
 
     if (!filePath) return { success: false, message: "Download cancelled" };
 
-    const manualPath = path.join(
-      __dirname,
-      "renderer/assets/BookLing_User_Manual.pdf",
-    );
+    const manualPath = path.join(__dirname, "renderer/assets/User_Manual.pdf");
     fs.copyFileSync(manualPath, filePath);
-    return { success: true, filePath };
+    return { success: true, message: "Downloaded successfully", filePath };
   } catch (err) {
     console.error("Manual Download Error:", err);
     return { success: false, error: err.message };

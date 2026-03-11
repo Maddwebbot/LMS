@@ -130,7 +130,9 @@ async function backupDatabase() {
   try {
     const path = await window.electronAPI.backupDatabase();
     showNotification("Backup created: " + path, "success", 2500);
-    window.location.reload();
+    setTimeout(() => {
+      window.location.reload();
+    }, 2600);
   } catch (err) {
     showNotification("Failed to create backup.", "error", 2500);
     console.error(err);
@@ -148,7 +150,7 @@ async function restoreBackup() {
     if (!result.success) {
       showNotification(
         result.message || result.error || "Restore cancelled",
-        "info",
+        "error",
         2500,
       );
       return;
@@ -172,6 +174,30 @@ async function restoreBackup() {
   }
 }
 
+async function importBackup() {
+  try {
+    const confirm = await customConfirm(
+      "Importing a backup will replace your current database and cannot be undone. Continue?",
+    );
+    if (!confirm) return;
+
+    const result = await window.electronAPI.importBackup();
+
+    if (!result.success) {
+      showNotification(
+        result.message || result.error || "Import Cancelled",
+        "error",
+        2500,
+      );
+      return;
+    }
+  } catch (err) {
+    console.error("importBackup error:", err);
+    showNotification("Import failed.", "error", 2500);
+  }
+}
+window.importBackup = importBackup;
+
 async function resetDatabase() {
   try {
     const confirm = await customConfirm(
@@ -183,7 +209,7 @@ async function resetDatabase() {
     if (result.success) {
       showNotification(result.msg, "success", 3000);
     } else {
-      showNotification(result.error, "error", 3000);
+      showNotification(result.error, "error", 2500);
     }
   } catch (err) {
     console.error("Error occured upon deleting: ", err);
@@ -194,20 +220,24 @@ async function importBooks() {
   const result = await window.electronAPI.importBooksFromExcel();
 
   if (!result.success) {
-    return showNotification(result.message, "error", 3000);
+    return showNotification(result.message, "error", 2500);
   }
 
   showNotification(
     `Imported: ${result.inserted} | Duplicates skipped: ${result.duplicates}`,
     "success",
-    4000,
+    3000,
   );
 }
 
 async function downloadTemplate() {
   try {
-    await window.electronAPI.downloadTemplate();
-    showNotification("Template successfully downloaded.", "success", 2500);
+    const result = await window.electronAPI.downloadTemplate();
+    if (!result.success) {
+      return showNotification(result.message, "error", 2500);
+    } else {
+      return showNotification(result.message, "success", 3000);
+    }
   } catch (err) {
     showNotification("Failed to download template.", "error", 2500);
     console.error(err);
@@ -216,8 +246,12 @@ async function downloadTemplate() {
 
 async function downloadManual() {
   try {
-    await window.electronAPI.downloadManual();
-    showNotification("User manual successfully downloaded.", "success", 2500);
+    const result = await window.electronAPI.downloadManual();
+    if (!result.success) {
+      return showNotification(result.message, "error", 2500);
+    } else {
+      return showNotification(result.message, "success", 3000);
+    }
   } catch (err) {
     showNotification("Failed to download user manual.", "error", 2500);
     console.error(err);
