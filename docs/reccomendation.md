@@ -14,6 +14,4 @@ THING I COULD NOT IMPLEMENT RUN OUT OF TIME LOL
 
 - book management add archived and unarchives section ibabase (is_deleted) sa database table books
 
-- auto backup function that can be set like for every 1 min, 30mins,1hr, or something
-
 - add cloud to it so backups are more secured
