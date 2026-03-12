@@ -226,7 +226,8 @@ section {
 .table-container {
   margin-top: 1.5rem;
   width: 100%;
-  height: 400px;
+  max-height: calc(100vh - 300px);
+
   overflow-y: auto;
   table {
     width: 100%;
