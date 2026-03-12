@@ -653,13 +653,23 @@ function backupDatabase() {
     console.log("Created Backup Folder : ", backupDir);
   }
 
+  const manualBackupDir = path.join(backupDir, "manual_backups");
+  if (!fs.existsSync(manualBackupDir)) {
+    fs.mkdirSync(manualBackupDir, { recursive: true });
+  }
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const backupFile = path.join(backupDir, `backup_${timestamp}.db`);
+  const backupFile = path.join(
+    manualBackupDir,
+    `manual_backup_${timestamp}.db`,
+  );
 
   // make sure the file isn’t locked while we copy it
   closeDbConnection();
   fs.copyFileSync(dbPath, backupFile);
   reopenDbConnection();
+
+  console.log("Manual Backup created at:", backupFile);
 
   return backupFile;
 }

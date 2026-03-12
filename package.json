@@ -1,6 +1,6 @@
 {
   "name": "lms",
-  "version": "1.0.0",
+  "version": "3.12.26",
   "description": "A desktop application for managing library resources and transactions.",
   "main": "main.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "xlsx": "^0.18.5"
   },
   "build": {
-    "appId": "BookLing",
+    "appId": "com.jetframe5.bookling",
     "productName": "BookLing",
     "directories": {
       "buildResources": "assets",
@@ -38,10 +38,15 @@
     ],
     "win": {
       "target": [
-        "nsis",
-        "zip"
+        "nsis"
       ],
       "icon": "renderer/assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     },
     "forceCodeSigning": false
   },

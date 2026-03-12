@@ -7,6 +7,15 @@ const {
   generateTransactionQRCode,
 } = require("./utils/helper/qrcode.js");
 const fs = require("fs");
+
+const dbDir = path.join(app.getPath("userData"), "database");
+
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
+const dbFile = path.join(dbDir, "pmci.db");
+
 const { importBooksFromExcel } = require("./utils/helper/importhelper.js");
 const {
   setMainWindow,
@@ -103,6 +112,7 @@ function createWindow() {
 app.whenReady().then(async () => {
   createWindow();
   await startOverdueCheck(); // Start checking for overdue transactions
+  startAutoBackup(); // Start auto backup process
 });
 
 // Quit app when all windows are closed (except on macOS)
@@ -117,6 +127,45 @@ app.on("activate", () => {
     createWindow();
   }
 });
+
+function startAutoBackup() {
+  // Base backups folder
+  const backupDir = path.join(app.getPath("userData"), "backups");
+
+  if (!fs.existsSync(backupDir)) {
+    fs.mkdirSync(backupDir, { recursive: true });
+    console.log("Created Backup Folder:", backupDir);
+  }
+
+  // Automatic backups folder
+  const autoBackupDir = path.join(backupDir, "automatic_backups");
+
+  if (!fs.existsSync(autoBackupDir)) {
+    fs.mkdirSync(autoBackupDir, { recursive: true });
+    console.log("Created Automatic Backup Folder:", autoBackupDir);
+  }
+
+  // Schedule automatic backup every 30 minutes
+  setInterval(
+    () => {
+      try {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const backupFile = path.join(
+          autoBackupDir,
+          `auto_backup_${timestamp}.db`,
+        );
+
+        if (fs.existsSync(dbFile)) {
+          fs.copyFileSync(dbFile, backupFile);
+          console.log("Auto backup created:", backupFile);
+        }
+      } catch (err) {
+        console.error("Auto backup failed:", err);
+      }
+    },
+    30 * 60 * 1000,
+  ); // every 30 minutes
+}
 
 // --- IPC Handlers ---
 
@@ -322,12 +371,6 @@ ipcMain.handle("export-transactions-filtered", async (_, filter) => {
   }
 });
 
-// Settings Handlers
-const dbFile = path.join(app.getPath("userData"), "database", "pmci.db");
-
-// Backup folder
-const backupDir = path.join(app.getPath("userData"), "backups");
-
 ipcMain.handle("get-database-info", () => {
   // DB size
   const stats = fs.existsSync(dbFile) ? fs.statSync(dbFile) : { size: 0 };
@@ -375,6 +418,9 @@ ipcMain.handle("save-library-logo", async (event, fileName, uint8Array) => {
 
   return destPath; // full path in userData
 });
+
+// Backup folder
+const backupDir = path.join(app.getPath("userData"), "backups");
 
 ipcMain.handle("backup-database", () => {
   try {
