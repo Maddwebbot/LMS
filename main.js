@@ -371,6 +371,7 @@ ipcMain.handle("export-transactions-filtered", async (_, filter) => {
   }
 });
 
+// Settings Handlers
 ipcMain.handle("get-database-info", () => {
   // DB size
   const stats = fs.existsSync(dbFile) ? fs.statSync(dbFile) : { size: 0 };
@@ -419,7 +420,6 @@ ipcMain.handle("save-library-logo", async (event, fileName, uint8Array) => {
   return destPath; // full path in userData
 });
 
-// Backup folder
 const backupDir = path.join(app.getPath("userData"), "backups");
 
 ipcMain.handle("backup-database", () => {
