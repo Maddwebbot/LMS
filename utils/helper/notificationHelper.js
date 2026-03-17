@@ -132,7 +132,7 @@ async function startOverdueCheck() {
   await runCheck();
 
   // Then set interval to check every 30 minutes
-  setInterval(runCheck, 1 * 30 * 1000);
+  setInterval(runCheck, 1 * 60 * 1000);
 }
 
 module.exports = {
