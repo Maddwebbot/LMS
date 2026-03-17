@@ -256,8 +256,8 @@ nav {
 .scanner-preview-container {
   z-index: 10001;
   border-radius: 8px;
-  width: 150px;
-  height: 100px;
+  width: 170px;
+  height: 120px;
   transform: scale(0);
   border: var(--cl1) 2px solid;
   overflow: hidden;
@@ -276,6 +276,24 @@ nav {
     transform: scale(0.85);
     opacity: 0;
   }
+  .camera-selector {
+    position: absolute;
+    z-index: 2;
+    cursor: pointer;
+    select {
+      width: 100%;
+      text-align: center;
+      background-color: transparent;
+      color: var(--cl3);
+      border: none;
+      font-size: 0.7rem;
+      cursor: pointer;
+      option {
+        background-color: var(--cl3);
+        color: #000;
+      }
+    }
+  }
   .qr-preview {
     position: relative;
   }
@@ -283,8 +301,8 @@ nav {
     position: absolute;
     top: 0;
     left: 0;
-    width: 150px;
-    height: 100px;
+    width: 170px;
+    height: 120px;
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;

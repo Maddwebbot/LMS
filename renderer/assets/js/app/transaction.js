@@ -1,5 +1,6 @@
 // still working on it
 window.addEventListener("DOMContentLoaded", () => {
+  loadCameraOptions();
   // Books
   if (document.getElementById("booksTableBody")) {
     if (searchInput) {
@@ -1056,7 +1057,12 @@ async function handleQRScan(targetInput, btn, icon) {
     activeIcon.src = "../assets/img/png/cancel-icon.png";
     previewContainer.classList.add("active");
 
-    const qrData = await window.qrScanner.startScan("qrPreview");
+    const selectedCamera = cameraSelect?.value || null;
+
+    const qrData = await window.qrScanner.startScan(
+      "qrPreview",
+      selectedCamera,
+    );
 
     if (activeInput) {
       activeInput.value = qrData;
@@ -1119,6 +1125,66 @@ function resetScanUI() {
   activeIcon = null;
   activeInput = null;
 }
+
+const cameraSelect = document.getElementById("cameraSelect");
+
+async function loadCameraOptions() {
+  if (!cameraSelect) return;
+
+  try {
+    // Request permission first (needed for camera labels)
+    await navigator.mediaDevices.getUserMedia({ video: true });
+
+    const cameras = await window.qrScanner.getAvailableCameras();
+
+    cameraSelect.innerHTML = "";
+
+    cameras.forEach((cam, index) => {
+      const option = document.createElement("option");
+
+      option.value = cam.deviceId;
+      option.textContent = cam.label || `Camera ${index + 1}`;
+
+      cameraSelect.appendChild(option);
+    });
+
+    // Auto-select first camera
+    if (cameraSelect.options.length > 0) {
+      cameraSelect.selectedIndex = 0;
+    }
+  } catch (err) {
+    console.error("Camera loading failed:", err);
+  }
+}
+
+cameraSelect?.addEventListener("change", () => {
+  if (!isScanning) return;
+
+  // Restart scanning with new camera
+  window.qrScanner.stopScan();
+
+  setTimeout(async () => {
+    try {
+      const qrData = await window.qrScanner.startScan(
+        "qrPreview",
+        cameraSelect.value,
+      );
+
+      if (activeInput) {
+        activeInput.value = qrData;
+
+        if (activeInput.id === "search") loadBooks();
+        if (activeInput.id === "transactionsearch") loadTransaction();
+      }
+
+      resetScanUI();
+      showNotification("QR scanned!", "success", 3000);
+    } catch (err) {
+      resetScanUI();
+      showNotification(err.message, "error", 3000);
+    }
+  }, 200);
+});
 
 // -------------------------
 // Notification working and Confirmation Modal

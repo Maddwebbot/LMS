@@ -1,5 +1,5 @@
 // Initial load and event listeners
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   if (document.getElementById("booksTableBody")) {
     if (searchInput) {
       searchInput.addEventListener("input", loadBooks);
@@ -18,6 +18,7 @@ window.addEventListener("DOMContentLoaded", () => {
     loadBooks();
     setupSelectAll();
   }
+  await loadCameras();
 });
 
 const searchInput = document.getElementById("search");
@@ -540,10 +541,16 @@ scanBtn.addEventListener("click", async () => {
     scanIcon.src = "../assets/img/png/cancel-icon.png";
     previewContainer.classList.add("active");
 
+    const selectedDeviceId =
+      document.getElementById("cameraSelect")?.value || null;
+
     scanBtn.disabled = false;
 
     // Start QR scan
-    const qrData = await window.qrScanner.startScan("qrPreview");
+    const qrData = await window.qrScanner.startScan(
+      "qrPreview",
+      selectedDeviceId,
+    );
 
     resetScanUI();
     showNotification("QR scanned!", "success", 3000);
@@ -575,6 +582,54 @@ function resetScanUI() {
     previewContainer.classList.remove("closing");
   }, 250);
 }
+
+// -------------------------
+// Camera Selection
+// -------------------------
+
+async function loadCameras() {
+  try {
+    const cameras = await window.qrScanner.getAvailableCameras();
+    const select = document.getElementById("cameraSelect");
+    if (!select) return;
+
+    select.innerHTML = "";
+    cameras.forEach((camera, index) => {
+      const option = document.createElement("option");
+      option.value = camera.deviceId;
+      option.textContent = camera.label || `Camera ${index + 1}`;
+      select.appendChild(option);
+    });
+
+    if (!select.value && cameras[0]) {
+      select.value = cameras[0].deviceId;
+    }
+  } catch (err) {
+    console.error("Failed to load cameras:", err);
+  }
+}
+
+document
+  .getElementById("cameraSelect")
+  ?.addEventListener("change", async () => {
+    const deviceId = document.getElementById("cameraSelect")?.value;
+    if (!deviceId) return;
+
+    if (isScanning) {
+      window.qrScanner.stopScan();
+      try {
+        await window.qrScanner.startScan("qrPreview", deviceId);
+      } catch (err) {
+        console.error("Failed to restart scan on camera change:", err);
+        resetScanUI();
+        showNotification(
+          err.message || "Failed to switch camera",
+          "error",
+          3000,
+        );
+      }
+    }
+  });
 
 // -------------------------
 // Notification working and Confirmation Modal

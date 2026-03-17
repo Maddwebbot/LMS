@@ -2,9 +2,11 @@ let video = null;
 let stream = null;
 let animationId = null;
 
-/**
- * Infer a human-friendly camera type from the device label
- */
+async function getAvailableCameras() {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  return devices.filter((device) => device.kind === "videoinput");
+}
+
 function getCameraType(label = "") {
   const lower = label.toLowerCase();
 
@@ -17,7 +19,7 @@ function getCameraType(label = "") {
   return label || "Camera";
 }
 
-async function startScan(previewContainerId) {
+async function startScan(previewContainerId, deviceId = null) {
   return new Promise(async (resolve, reject) => {
     try {
       const container = document.getElementById(previewContainerId);
@@ -39,7 +41,9 @@ async function startScan(previewContainerId) {
 
       // Request camera
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: deviceId
+          ? { deviceId: { exact: deviceId } }
+          : { facingMode: "environment" },
       });
 
       // 🔍 Camera info (after permission)
@@ -121,4 +125,5 @@ function stopScan() {
 window.qrScanner = {
   startScan,
   stopScan,
+  getAvailableCameras,
 };
