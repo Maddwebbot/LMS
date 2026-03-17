@@ -20,6 +20,7 @@ const { importBooksFromExcel } = require("./utils/helper/importhelper.js");
 const {
   setMainWindow,
   startOverdueCheck,
+  showNotification,
 } = require("./utils/helper/notificationHelper.js");
 
 // Set app name and ID for Windows notifications
@@ -111,6 +112,7 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   createWindow();
+
   await startOverdueCheck(); // Start checking for overdue transactions
   startAutoBackup(); // Start auto backup process
 });

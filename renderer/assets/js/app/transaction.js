@@ -1196,6 +1196,7 @@ cameraSelect?.addEventListener("change", () => {
  * @param {string} type - "success", "error", "info" (optional, default "success")
  * @param {number} duration - How long to show it in ms (optional, default 2000)
  */
+let transactionNotificationTimeout;
 function showNotification(message, type = "success", duration = 2000) {
   const notification = document.getElementById("modal-notification");
   if (!notification) return;
@@ -1203,8 +1204,11 @@ function showNotification(message, type = "success", duration = 2000) {
   notification.textContent = message;
   notification.className = `modal-notification show ${type}`;
 
-  // Remove the notification after the duration
-  setTimeout(() => {
+  if (transactionNotificationTimeout) {
+    clearTimeout(transactionNotificationTimeout);
+  }
+
+  transactionNotificationTimeout = setTimeout(() => {
     notification.className = "modal-notification";
     notification.textContent = "";
   }, duration);

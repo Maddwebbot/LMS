@@ -204,23 +204,29 @@ nav {
   font-size: 14px;
   text-align: center;
   font-weight: bold;
+  opacity: 0;
+  transform: translateY(-10px);
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
-  &.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  &.success {
-    background-color: #4caf50;
-    color: #fff;
-    text-transform: uppercase;
-  }
-  &.error {
-    background-color: #f44336;
-    color: #fff;
-    text-transform: uppercase;
-  }
+  pointer-events: none;
+  display: block;
+  box-sizing: border-box;
+}
+.modal-notification.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.modal-notification.success {
+  background-color: #4caf50;
+  color: #fff;
+  text-transform: uppercase;
+}
+.modal-notification.error {
+  background-color: #f44336;
+  color: #fff;
+  text-transform: uppercase;
 }
 
 .scan-btn {
