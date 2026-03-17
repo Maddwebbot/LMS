@@ -1,6 +1,6 @@
 {
   "name": "lms",
-  "version": "3.12.26",
+  "version": "3.17.26",
   "description": "A desktop application for managing library resources and transactions.",
   "main": "main.js",
   "scripts": {
