@@ -182,23 +182,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // -----------------------------
-  // Overdue (Dougnut)
+  // Overdue / Active / Returned (Dougnut)
   // -----------------------------
-  const returnedOnTime = summary.totalBorrowings - summary.overdueBooks;
   const overdue = summary.overdueBooks;
+  const active = Math.max((summary.activeCheckouts || 0) - overdue, 0);
+  const returned = Math.max(
+    (summary.totalBorrowings || 0) - (summary.activeCheckouts || 0),
+    0,
+  );
 
   new Chart(document.getElementById("overdueDoughnut"), {
     type: "doughnut",
     data: {
-      labels: ["Active", "Overdue"],
+      labels: ["Active", "Overdue", "Returned"],
       datasets: [
         {
-          data: [returnedOnTime, overdue],
-          backgroundColor: ["#2563EB", "#DC2626 "],
+          data: [active, overdue, returned],
+          backgroundColor: ["#2563EB", "#DC2626", "#22c55e"],
         },
       ],
     },
-    options: { responsive: false },
+    options: {
+      responsive: false,
+      plugins: {
+        legend: {
+          position: "bottom",
+        },
+      },
+    },
   });
 
   // -----------------------------
