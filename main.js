@@ -445,25 +445,37 @@ ipcMain.handle("get-database-info", () => {
   // Ensure backup folder exists
   if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
 
-  // List all backups
-  const allBackups = fs
-    .readdirSync(backupDir)
-    .filter((f) => f.endsWith(".db"))
-    .map((f) => {
-      const fullPath = path.join(backupDir, f);
-      const sizeMB = (fs.statSync(fullPath).size / 1024 / 1024).toFixed(4);
-      return { file: fullPath, sizeMB };
-    })
-    .sort((a, b) => b.file.localeCompare(a.file));
+  // Recursively collect DB backups in backupDir
+  const backupFiles = [];
+  const walk = (dir) => {
+    fs.readdirSync(dir, { withFileTypes: true }).forEach((d) => {
+      const fullPath = path.join(dir, d.name);
+      if (d.isDirectory()) {
+        walk(fullPath);
+      } else if (d.isFile() && fullPath.endsWith(".db")) {
+        const fileStats = fs.statSync(fullPath);
+        backupFiles.push({
+          file: fullPath,
+          sizeMB: (fileStats.size / 1024 / 1024).toFixed(4),
+          mtime: fileStats.mtimeMs,
+        });
+      }
+    });
+  };
+  walk(backupDir);
 
-  // Latest backup
-  const lastBackup = allBackups.length ? allBackups[0] : "No backups found";
+  // Sort by last modified time (newest first)
+  backupFiles.sort((a, b) => b.mtime - a.mtime);
+
+  const lastBackup = backupFiles.length
+    ? { file: backupFiles[0].file, sizeMB: backupFiles[0].sizeMB }
+    : "No backups found";
 
   return {
     dbPath: dbFile,
     dbSize: sizeMB,
     lastBackup,
-    allBackups, // optional, useful for frontend display
+    allBackups: backupFiles,
   };
 });
 
