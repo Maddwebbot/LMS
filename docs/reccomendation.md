@@ -15,3 +15,5 @@ THING I COULD NOT IMPLEMENT RUN OUT OF TIME LOL
 - book management add archived and unarchives section ibabase (is_deleted) sa database table books
 
 - add cloud to it so backups are more secured
+
+- update the timestamp since some format is not consistent like at the exporting function of records ideal format is "2026-03-10 00:24:18" but some format uses "2026-03-10T00:24:49.095Z" although due_date will be keep as it is since its a date with no time.

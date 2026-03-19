@@ -658,7 +658,15 @@ function backupDatabase() {
     fs.mkdirSync(manualBackupDir, { recursive: true });
   }
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const year = now.getFullYear();
+  let hours = now.getHours();
+  const meridiem = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const timestamp = `${year}-${month}-${day}_${String(hours).padStart(2, "0")}-${minutes}_${meridiem}`;
   const backupFile = path.join(
     manualBackupDir,
     `manual_backup_${timestamp}.db`,
@@ -693,7 +701,15 @@ function restoreDatabase(backupFilePath) {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const year = now.getFullYear();
+  let hours = now.getHours();
+  const meridiem = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  const timestamp = `${year}-${month}-${day}_${String(hours).padStart(2, "0")}-${minutes}_${meridiem}`;
   const oldName = `pmci_old_${timestamp}.db`;
   const oldPath = path.join(dbDir, oldName);
 

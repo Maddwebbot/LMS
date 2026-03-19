@@ -114,7 +114,7 @@ async function startOverdueCheck() {
           .join("\n\n");
 
         showNotification(
-          "⚠️ Overdue Transanpction!",
+          "⚠️ Overdue Transaction!",
           {
             body: borrowerDetails,
           },
