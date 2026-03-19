@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, Tray, Menu } = require("electron");
 const path = require("path");
 const api = require("./utils/api");
 const helper = require("./utils/helper/exporthelper");
@@ -33,6 +33,7 @@ app.name = "BookLing";
 
 // Single instance lock
 let mainWindow;
+let tray = null;
 const gotTheLock = app.requestSingleInstanceLock();
 let isStartupMinimized = process.argv.includes("--minimized");
 
@@ -101,7 +102,14 @@ function createWindow() {
     }
   });
 
-  // Handle window closed
+  // Hide to tray on close, keep app running
+  mainWindow.on("close", (event) => {
+    if (!app.isQuiting) {
+      event.preventDefault();
+      mainWindow.hide();
+    }
+  });
+
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
@@ -110,23 +118,68 @@ function createWindow() {
   // mainWindow.webContents.openDevTools();
 }
 
+function createTray() {
+  const iconPath = path.join(__dirname, "renderer/assets/icon.ico");
+  tray = new Tray(iconPath);
+  const trayMenu = Menu.buildFromTemplate([
+    {
+      label: "Show BookLing",
+      click: () => {
+        if (mainWindow) {
+          mainWindow.show();
+          mainWindow.focus();
+        } else {
+          createWindow();
+        }
+      },
+    },
+    { type: "separator" },
+    {
+      label: "Quit",
+      click: () => {
+        app.isQuiting = true;
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setToolTip("BookLing - Library System");
+  tray.setContextMenu(trayMenu);
+  tray.on("double-click", () => {
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    } else {
+      createWindow();
+    }
+  });
+}
+
 app.whenReady().then(async () => {
   createWindow();
+  createTray();
 
   await startOverdueCheck(); // Start checking for overdue transactions
   startAutoBackup(); // Start auto backup process
 });
 
-// Quit app when all windows are closed (except on macOS)
-app.on("window-all-closed", () => {
+app.on("before-quit", () => {
+  app.isQuiting = true;
+});
+
+// Keep app running in background for notifications
+app.on("window-all-closed", (event) => {
   if (process.platform !== "darwin") {
-    app.quit();
+    // Do not quit the app on close; keep running in tray
+    event.preventDefault();
   }
 });
-// Re-create window on app activate (macOS)
+
 app.on("activate", () => {
   if (mainWindow === null) {
     createWindow();
+  } else {
+    mainWindow.show();
   }
 });
 
