@@ -1,13 +1,13 @@
 {
   "name": "lms",
-  "version": "3.17.26",
+  "version": "3.19.26",
   "description": "A desktop application for managing library resources and transactions.",
   "main": "main.js",
   "scripts": {
     "dev": "electronmon .",
     "start": "electron .",
     "rebuild": "electron-rebuild",
-    "build": "electron-builder",
+    "build": "node scripts/write-build-info.js && electron-builder",
     "postinstall": "electron-builder install-app-deps",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

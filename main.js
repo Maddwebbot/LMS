@@ -456,6 +456,25 @@ ipcMain.handle("get-database-info", () => {
     allBackups, // optional, useful for frontend display
   };
 });
+
+// App / Build Info
+ipcMain.handle("get-app-info", () => {
+  const version = app.getVersion();
+  let buildDate = null;
+
+  try {
+    const buildInfoPath = path.join(__dirname, "build-info.json");
+    if (fs.existsSync(buildInfoPath)) {
+      const raw = fs.readFileSync(buildInfoPath, "utf8");
+      const info = JSON.parse(raw);
+      buildDate = info.buildDate;
+    }
+  } catch (err) {
+    console.warn("Failed to read build-info.json", err);
+  }
+
+  return { version, buildDate };
+});
 ipcMain.handle("get-library-settings", () => api.getLibrarySettings());
 ipcMain.handle("update-library-settings", (event, settings) =>
   api.updateLibrarySettings(settings),

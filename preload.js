@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // Settings
   getDatabaseInfo: () => ipcRenderer.invoke("get-database-info"),
+  getAppInfo: () => ipcRenderer.invoke("get-app-info"),
   getLibrarySettings: () => ipcRenderer.invoke("get-library-settings"),
   updateLibrarySettings: (settings) =>
     ipcRenderer.invoke("update-library-settings", settings),

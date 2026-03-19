@@ -72,6 +72,30 @@ window.addEventListener("load", async () => {
     } else {
       document.getElementById("lastBackup").textContent = lastBackup;
     }
+
+    // Load app info (version + build date)
+    try {
+      const appInfo = await window.electronAPI.getAppInfo();
+      const versionEl = document.getElementById("appVersion");
+      const buildDateEl = document.getElementById("buildDate");
+
+      if (appInfo && versionEl) {
+        versionEl.textContent = appInfo.version ?? versionEl.textContent;
+      }
+
+      if (appInfo && buildDateEl) {
+        const date = appInfo.buildDate ? new Date(appInfo.buildDate) : null;
+        if (date) {
+          buildDateEl.textContent = date.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          });
+        }
+      }
+    } catch {
+      // ignore; just keep the hardcoded defaults
+    }
   } catch (err) {
     console.error("Failed to load settings:", err);
   }
