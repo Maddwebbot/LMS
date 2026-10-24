@@ -1,11 +1,9 @@
 OJT Project, Simple Library Management System
 
-<<<<<<< HEAD
-System Includes the ff: 
-=======
-System Includes the ff:
->>>>>>> feature
+- Built for the purpose of helping small a scaled library in managing their books
+- Still requires improvements  
 
+Features Includes: 
 - Tracks transaction
 - Inventory management system of books with CRUD operations
 - Simple Data Analytics
